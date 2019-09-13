@@ -1,0 +1,336 @@
+\section{9/5/2019}
+
+\subsection{Recap}
+
+\begin{itemize}
+    \item Minimum distiance functionals: good error, bounded by modulus of continuity $\fm$
+    \item Resilience $\implies$ bounded $\fm$
+    \item Bounded Orlicz $\psi$-norm $\implies$ resilience
+\end{itemize}
+This lecture:
+\begin{itemize}
+    \item Want to analyze $X_1, \ldots, X_n$
+    \item ``The empirical average converges to the mean if $n$ is large''
+    \item Two steps:
+    \begin{enumerate}
+        \item Show \emph{concentration inequality}: bound variation of $p$ in terms of $\sigma$
+        \item Show \emph{composition property}: $\sigma$ gets smaller as we take more independent samples
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Concentration Inequalities and Composition}
+
+\begin{example}
+    A slot machine has expected payout of \$5 and always pays out positive.
+    
+    \textbf{Question}: What is the maximum probability of $\geq \$100$?
+    
+    \textbf{Answer}: 5\%, by letting $P(X=\$0) = 0.95$ and letting $P(X=\$100) = 5\%$.
+\end{example}
+
+The preceding example is an instance of \nameref{thm:markov}:
+\begin{theorem}[Markov's Inequality]\label{thm:markov}
+    If $X \geq 0$ has bounded first moment, then
+    \begin{align}
+        \Pr[X \geq t \ex[X]] &\leq \frac{1}{t}
+    \end{align}
+\end{theorem}
+\begin{proof}
+    \begin{align}  
+        t \ex[X] \ind\{X \geq t \ex[X]\} &\leq X
+    \end{align}
+    Take expectation of both sides and rearrange.
+\end{proof}
+
+\nameref{thm:markov} has a nice composition property:
+\begin{theorem}[Composition of Markov for sums]\label{thm:markov-composition}
+    Let $X_1, X_2 \sim p$ with mean $\mu$.
+    \begin{align}
+        \Pr\left[ \frac{X_1 + X_2}{2} \geq t \mu \right] &\leq \frac{1}{t}
+    \end{align}
+\end{theorem}
+This is because $\ex[(X_1 + X_2) / 2] = \mu = \ex[X_1] = \ex[X_2]$.
+
+We can apply \nameref{thm:markov} to $Z = f(X)$ for $f : \RR \to \RR_{\geq 0}$
+and get a family of inequalities
+(provided $\ex[f(X)] < \infty$).
+For example, taking $Z = (X - \mu)^2$ and assuming $\ex[Z] = \Var[X] = \sigma^2 < \infty$ yields
+\begin{theorem}[Chebyshev's inequality]\label{thm:chebyshev}
+    \begin{align}
+        \Pr[\lvert X - \mu\rvert \geq t \sigma] \leq \frac{1}{t^2}
+    \end{align}
+\end{theorem}
+
+Analogous to \myref{thm:markov-composition},
+a composition property for \nameref{thm:chebyshev} would require a composition property involving variances:
+\begin{theorem}[Variances add for independent RVs]
+    If $\{X_i\}_{i=1}^n$ are independent, then
+    \begin{align}
+        \Var\left[ \sum_{i=1}^n X_i \right] = \sum_{i=1}^n \Var[X_i]
+    \end{align}
+\end{theorem}
+
+\begin{example}[Concentration of empirical average]
+    Let $X_1, \ldots, X_n \simiid p$ with mean $\mu$ and variance $\sigma^2$.
+    Let $S = \sum_i^n X_i$ and $\frac{S}{n}$ the empirical average. Then
+    \begin{align}
+        \Var[S/n] = n \Var[X/n] = n \frac{\sigma^2}{n^2} = \frac{\sigma^2}{n}
+    \end{align}
+    Hence, the standard deviation of the empirical average $\frac{S}{n}$ is $\sigma_{avg} = \frac{\sigma}{\sqrt{n}}$.
+    \nameref{thm:chebyshev} then yields
+    \begin{corollary}\label{cor:chebyshev-empirical-avg-concentration}
+        \begin{align}
+            \Pr\left[
+                \left\lvert \frac{S}{n} - \mu \right\rvert \geq t \frac{\sigma}{\sqrt{n}}
+            \right] &\leq \frac{1}{t^2}
+        \end{align}
+    \end{corollary}
+\end{example}
+
+The $t^{-2}$ quadratic decay in \cref{cor:chebyshev-empirical-avg-concentration} is tight, as the following
+proposition shows:
+\begin{proposition}[Lower bounds for Chebyshev]
+    There exists $X_1, \ldots, X_n$ pairwise independent, bounded in $[-1, 1]$, mean zero, variance one, such that
+    \begin{align}
+        \Pr\left[\sum_{i=1}^n X_i = n \right] = \frac{1}{n}
+    \end{align}
+    Consequently, \cref{cor:chebyshev-empirical-avg-concentration} (with $\mu=0$, $\sigma=1$, and $t = \sqrt{n}$)
+    is tight.
+\end{proposition}
+\begin{proof}
+    Flip $k$ independent coins and let $n = 2^k$. For any subset $\emptyset \subsetneq S \subset [k]$, define the random variable
+    \begin{align}
+        X_S = \begin{cases}
+            1 &\text{\# heads in $S$ is even} \\
+            -1 &\text{\# heads in $S$ is odd}
+        \end{cases}
+    \end{align}
+    $X_S$ is mean zero, variance one, bounded $[-1,1]$, and pairwise
+    independent (since the coin flips are). The event $\{ \sum_{i=1}^n X_i = n \}$
+    occurs iff all of the coins land tails, which occurs with probability $2^{-k} = \frac{1}{n}$.
+\end{proof}
+
+\subsection{Failure of composition of higher moments and Rosenthal's inequality}\label{ssec:rosenthals-inequality}
+
+To try to extend \nameref{thm:chebyshev}, we can consider applying \nameref{thm:markov} to
+$Z = f(X) = (X - \mu)^4$ to get:
+\begin{theorem}
+    \begin{align}
+        \Pr[\lvert X - \mu\rvert \geq t \ex[Z]^{1/4} ] &\leq \frac{1}{t^4}
+    \end{align}
+\end{theorem}
+However, the composition property fails here since
+for $\ex[X_1] = \ex[X_2] = 0$ we find
+\begin{align}
+    \ex[(X_1 + X_2)^4]
+    &= \ex[X_1^4] + \ex[X_2^4]
+    + 4 \cancelto{0}{\ex[X_1]} \ex[X_2^3]
+    + 4 \cancelto{0}{\ex[X_2]} \ex[X_1^3]
+    + \underbrace{6 \ex[X_1^2 X_2^2]}_{\geq 0}\label{eq:9-5-4th-moment-nonadditive}
+\end{align}
+Thus, the fourth moment of a sum can be larger than the sum of the fourth moments.
+
+In general, higher moments don't add.
+One method to work around this is to work with cumulants (see \cref{ssec:cumulants-additive}).
+An alternative method is through Rosenthal's inequality:
+
+\begin{lemma}[Rosenthal's inequality]\label{lem:rosenthal-ineq}
+    If $X_1,\ldots, X_n$ are independent mean zero random variables with finite $p$th moments, then
+    \begin{align}
+        \ex\left[\left\lvert \sum_{i=1}^n X_i \right\rvert^p\right]
+        &\leq O(p)^p \sum_{i=1}^n \ex[\lvert X_i \rvert^p]
+        + O(\sqrt{p})^p \left( \sum_{i=1}^n \ex[X_i^2] \right)^{p/2}
+    \end{align}
+\end{lemma}
+
+How can we use \nameref{lem:rosenthal-ineq}?
+Suppose $X_1, \ldots, X_n \simiid \pi$ with $\ex[\lvert X \rvert^p] = k^p$
+and $\ex[X^2] = \sigma^2$. Let $S = \sum_{i=1}^n X_i$.
+Then
+\begin{align}
+    \ex[\lvert S \rvert^p ] &\leq O(p)^p n k^p + O(\sqrt{p})^p (n \sigma^2)^{p/2} \\
+    \ex[\lvert S \rvert^p]^{1/p} &\leq O(p k n^{1/p} + \sqrt{p} \sigma n^{1/2}) \\
+    \ex\left[ \left\lvert \frac{S}{n} \right\rvert^p \right]^{1/p}
+    &\leq O(p k n^{-(1-\frac{1}{p})} + \sqrt{p} \sigma n^{-1/2})
+\end{align}
+Hence, all of the $p$th moments of the empirical mean $\frac{S}{n}$ decay in $n$,
+so the empirical mean concentrates about the population mean as the number of samples $n \to \infty$.
+
+\subsection{Exponential tails and Chernoff bounds}
+
+Another approach which can yield exponential tail bounds is through the \nameref{def:moment-generating-function}. 
+\begin{definition}[Moment Generating Function]\label{def:moment-generating-function}
+    Let $X$ be a random variable with bounded moments.
+    The \emph{moment generating function} (MGF) of $X$ is
+    \begin{align}
+        m_X(\lambda)
+        &= \ex \exp(\lambda (X - \mu))
+        = 1 + \lambda \ex[x] + \frac{\lambda^2}{2} \ex[X^2]  \frac{\lambda^3}{6} \ex[X^3] + \cdots
+    \end{align}
+\end{definition}
+
+MGFs satisfy a desirable composition property enabling us to easily compute the MGF of a sum in terms
+of the MGFs of the summands:
+\begin{lemma}[Composition property for MGFs]\label{lem:mgf-sum-composition}
+    If $X_1, \ldots, X_n$ are independent, then
+    \begin{align}
+        m_{\sum_i^n X_i}(\lambda) = \prod_i^n m_{X_i}(\lambda)
+    \end{align}
+\end{lemma}
+\begin{proof}
+    Exponential of sum is product of exponentials, independence of $X_i$ allows splitting
+    of $\ex$.
+\end{proof}
+
+Another strong advantage of working with moment generating functions is that we can use them to
+get exponentially decaying tail bounds:
+
+\begin{theorem}[Chernoff's bound]\label{thm:chernoff}
+    For $\lambda \geq 0$,
+    \begin{align}
+        \Pr[X - \mu \geq t] \leq \inf_{\lambda \geq 0} m_X(\lambda) e^{-\lambda t}
+    \end{align}
+\end{theorem}
+
+\begin{proof}
+    $X - \mu \geq t$ implies $\exp(\lambda(X - \mu)) \geq e^{\lambda t}$.
+    The same technique used to prove \nameref{thm:chebyshev} (with $f(x) = e^{\lambda x}$) gives
+    \begin{align}
+        \Pr[\exp(\lambda (X - \mu)) \geq e^{\lambda t}]
+        \leq e^{-\lambda t} m_X(\lambda)
+    \end{align}
+\end{proof}
+
+\begin{example}[sub-exponential Chernoff bound]\label{eg:sub-exponential-chernoff}
+    Recall from \myref{def:sub-gaussian-sub-exp-orlicz} that $\sigma$-sub-exponential means
+    bounded Orlicz norm $\|X - \mu\|_\psi = \ex\left[\psi\left(\frac{\lvert X - \mu \rvert}{\sigma}\right)\right] \leq 1$
+    for $\psi(x) = e^x - 1$. \nameref{thm:chernoff} then implies
+    \begin{align}
+        \ex[\exp(\lvert X - \mu \rvert / \sigma) - 1] &\leq 1\\
+        \ex[\exp(\lvert X - \mu \rvert / \sigma)] &\leq 2\\
+        m_X(1/\sigma)
+        = \ex \exp\left(\frac{x - \mu}{\sigma}\right)
+        \leq \ex \exp\left(\frac{\lvert x - \mu \rvert}{\sigma}\right)
+        &\leq 2 \\
+        \Pr[X - \mu \geq t] &\leq 2 \exp(-t / \sigma)
+    \end{align}
+    This explains the name ``sub-exponential'': the tail probabilities decay faster than an exponential.
+\end{example}
+
+\begin{example}[sub-Gaussian Chernoff bound]\label{eg:sub-gaussian-chernoff}
+    Recall from \myref{def:sub-gaussian-sub-exp-orlicz} that $\sigma$-sub-Gaussian means
+    bounded Orlicz norm $\|X - \mu\|_\psi$ with $\psi(x) = e^{x^2} - 1$.
+    Hence, $\ex[\exp((X - \mu)^2 / \sigma^2)] \leq 2$ and
+    \begin{align}
+        m_X(\lambda)
+        = \ex \exp(\lambda (X - \mu))
+        &\leq \exp(\lambda^2 \sigma^2 / 4) \cancelto{2}{\ex \exp((X - \mu)^2 / \sigma^2)} ]
+        = 2 \exp(\lambda^2 \sigma^2 / 4)
+    \end{align}
+    where we have used inequality $ab \leq \frac{a^2}{4} + b^2$ to conclude
+    \begin{align}
+        \lambda (X - \mu) &\leq \frac{\lambda^2 \sigma^2}{4} + \frac{(X - \mu)^2}{\sigma^2}
+    \end{align}
+    
+    \begin{remark}
+        We can also show
+        \begin{align}
+            m_X(\lambda)
+            \leq \exp\left(\frac{1}{2} \lambda^2 (\sigma')^2\right)
+        \end{align}
+        where $\sigma' \leq \sqrt{3} \sigma$. This is sometimes taken as definition of $\sigma'$-sub-Gaussian.
+    \end{remark}
+    
+    Applying \nameref{thm:chernoff} shows
+    \begin{align}
+        \Pr[X - \mu \geq t]
+        &\leq \inf_{\lambda \geq 0} m_X(\lambda) e^{-\lambda t} \\
+        &\leq \inf_{\lambda \geq 0} \exp\left( \frac{1}{2} \lambda^2 (\sigma')^2 - \lambda t \right) \\
+        &= \exp\left( -\frac{t^2}{2 (\sigma')^2}\right)
+    \end{align}
+    This explains the name ``$\sigma'$-sub-Gaussian'': the tail probabilities are decaying faster than those of a Gaussian
+    distribution with variance $\sigma'$.
+    
+    By \myref{lem:mgf-sum-composition}, we have that the sum $S = \sum_i^n X_i$ of $\sigma'$-sub-Gaussian RVs
+    is itself $\frac{\sigma'}{\sqrt{n}}$-sub-Gaussian and
+    satisfies the tail bound
+    \begin{align}
+        \Pr\left[\frac{S}{n} - \mu \geq t\right]
+        &\leq \exp\left( - \frac{n t^2}{2 (\sigma')^2} \right)
+        = \exp\left( - \frac{n t^2}{6 \sigma^2} \right) \label{eq:sum-sub-gaussian-tail-bound}
+    \end{align}
+    This yields our desired exponential rate of concentration.
+\end{example}
+
+\subsection{Bounded random variables}
+
+Bounded RVs are sub-Gaussian, but we can get tighter bounds than the previous example.
+Let $X - \mu \in [-M, M]$. Then
+\begin{align}
+    \ex \exp \frac{\lvert X - \mu \rvert}{M^2 / \log 2} \leq \ex \exp \log 2 = 2
+\end{align}
+Hence $X$ is sub-Gaussian with parameter $\sigma = \sqrt{\frac{M^2}{\log 2}}$
+and we can use \cref{eq:typical-sup-via-concentration} to get tail bounds.
+More generally:
+\begin{corollary}[Hoeffding's inequality]\label{corr:hoeffding-inequality}
+    Let $X_1,\ldots, X_n \in [a,b]$ be bounded independent mean zero random variables. Then
+    \begin{align}
+        \Pr\left[\frac{S}{n} - \mu \geq t \right] &\leq \exp\left( - \frac{2 n t^2}{(a - b)^2} \right)
+    \end{align}
+\end{corollary}
+
+\begin{proof}
+    Bound MGF (tighter than what we are doing here) and apply \nameref{thm:chernoff}.
+\end{proof}
+
+\nameref{corr:hoeffding-inequality} shows that an empirical average of independent bounded random variables
+converges to its mean at a rate of $\frac{1}{\sqrt{n}}$ with tails that decay at least as fast as Gaussians.
+Compare this against the $\frac{1}{n}$ rate for sub-exponentials we found in \cref{eg:sub-exponential-chernoff}
+and the quadratic $\frac{1}{t^2}$ tails from \nameref{thm:chebyshev} (which only required finite second moments).
+
+\subsection{Aside: Cumulants are additive}\label{ssec:cumulants-additive}
+
+We saw in \cref{ssec:rosenthals-inequality} that fourth moments are additive.
+While \myref{lem:mgf-sum-composition} provides a convenient composition property for moment generating functions,
+the existence of MGFs requires all moments of the random variable to be bounded. In particular, this excludes
+random variables with fat tails.
+
+To construct additive quantities, we can start with MGF (multiplicative)
+and take log (which is additive)
+\begin{align}
+    K_X(\lambda)
+    &= \log \ex \exp(\lambda (X - \mu)) \\
+    &= \log\left(
+        1 + \ex[(X - \mu)^2] \frac{\lambda^2}{2} + \ex[(X - \mu)^3] \frac{\lambda^3}{6} + \cdots
+    \right) \label{eq:cumulant-function-taylor-series} \\
+    &= 1 + \sum_{n=1}^\infty \frac{\kappa_n(X)}{n!}\lambda^n 
+\end{align}
+This leads to the cumulant generating function:
+\begin{definition}[Cumulants]
+    The \emph{cumulant generating function} for a random variable $X$ is
+    \begin{align}
+        K_X(\lambda) &= \log \ex \exp(\lambda X) = 1 + \sum_{n=1}^\infty \frac{\kappa_n(X)}{n!}\lambda^n 
+    \end{align}
+    $\kappa_n(X)$ is called the $n$th cumulant of $X$.
+\end{definition}
+Notice $K_{X + Y}(\lambda) = K_X(\lambda) + K_Y(\lambda)$ so we have additivity of the CGF and consequentially
+\begin{align}
+    \kappa_4(X + Y) = \kappa_4(X) + \kappa_4(Y)
+\end{align}
+Contrast this to \cref{eq:9-5-4th-moment-nonadditive}.
+
+However, computing the cumulants require Taylor expanding $\log$ using the infinite
+series in \cref{eq:cumulant-function-taylor-series} as the argument and are laborious to work with.
+To handle heavy tails, it may be easier to use \nameref{lem:rosenthal-ineq} instead.
+
+\subsection{Max of n sub-Gaussians}
+
+Let $X_1, \ldots, X_n \sim p$, $p$ is $\sigma$-sub-Gaussian. A simple union bound shows:
+\begin{theorem}[Max of sub-gaussian bound]\label{thm:max-sub-gaussian}
+    \begin{align}
+        \Pr[X_1 \lor \cdots \lor X_n \geq t]
+        &\leq \sum_{i=1}^n \Pr[X_i \geq t]
+        \leq n e^{-\frac{t^2}{2 \sigma^2}}
+    \end{align}
+    So in particular if $t \gg \sigma \sqrt{\log n}$, then its not likely the max will exceed $t$.
+\end{theorem}

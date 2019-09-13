@@ -1,0 +1,262 @@
+\section{9/12/2019}
+
+\subsection{Recap}
+
+\begin{itemize}
+    \item Bounded supremum of $\ex$
+        \begin{itemize}
+            \item Top eigenvalue of random covariance matrix
+            \item VC inequality and symmetrization
+        \end{itemize}
+    \item Debut: VC-dim of halfspaces is $d+1$ (\cref{eg:half-spaces-vc})
+\end{itemize}
+
+Today:
+\begin{itemize}
+    \item Pay off debt
+    \item Finite-sample analysis of \myref{def:mdf}:
+    \begin{itemize}
+        \item Weaken $\TV$ to $\widetilde{\TV}$
+        \item Bound \nameref{prop:mdf-modulus-error-bound} via ``mean crossing lemma''
+        \item $\widetilde{\TV}(\tilde{p}, \tilde{p}_n) \to 0$ as $n \to \infty$
+    \end{itemize}
+\end{itemize}
+
+\subsection{VC dimension of half spaces}
+
+In \myref{eg:half-spaces-vc} we claimed that $vc(\cH) = d+1$ when $\cH$ is
+the family of half spaces (i.e. linear decision boundaries) and showed it
+for the case when $d=2$. Here, we will generalize this intuition to
+higher dimensions.
+
+Consider $x_i \in \RR^d$ with $\cH = \{ \ind\{\braket{v, x} \geq \tau : v v\in \RR^d, \tau \in \RR\}$ consisting of all halfspaces.
+
+\begin{proposition}
+    No $d+2$ set of points can be shattered.
+\end{proposition}
+
+\begin{proof}
+    We will find two sets $S_+, S_- \subset \{x_1, \ldots, x_{d+2}\}$ such
+    that $S_+ \cap S_- = \emptyset$ but
+    $\conv(S_+) \cap \conv(S_-) \neq \emptyset$.
+    This is sufficient for showing that $\{x_i\}_{i=1}^{d+2}$ cannot
+    be shattered, since any half space containing $\conv(S_+)$ must also
+    contain at least one point of $\conv(S_-)$ (otherwise the intersection is empty).
+
+    Since $H$ is a half-space, both $H$ and $H^c$ are convex and
+    \begin{align}
+        S_+ \subset H &\implies \conv(S_+) \subset H \\
+        S_- \subset H &\implies \conv(S_-) \subset H^c \\
+    \end{align}
+    
+    Find $a_1, \ldots, a_{d+2}$ such that
+    \begin{align}
+        \sum_{i=1}^{d+2} a_i x_i = 0, \qquad \sum_{i=1}^{d+2} a_i = 0
+    \end{align}
+    or equivalently in matrix form
+    \begin{align}
+        \underbrace{\begin{bmatrix}
+            \vdots & \vdots & \hdots & \vdots \\
+            x_1 & x_2 & \hdots & x_{d+2} \\
+            \vdots & \vdots & \hdots & \vdots \\
+            1 & 1 & \hdots & 1
+        \end{bmatrix}}_{(d+1) \times (d+2)} \begin{bmatrix}
+            a_1 \\ \vdots \\ a_n
+        \end{bmatrix} = 0
+    \end{align}
+    By the rank-nullity theorem, this matrix must have a nontrivial null-space
+    hence at least one non-trivial solution.
+    
+    Take
+    \begin{align}
+        S_+ = \{ i : a_i > 0 \}, \qquad S_- = \{ i : a_i < 0 \}
+    \end{align}
+    Then
+    \begin{align}
+        \underbrace{\frac{1}{A} \sum_{i \in S_+} \underbrace{a_i x_i}_{\geq 0}}_{\in \conv(S_+)}
+        &= \underbrace{\frac{1}{A} \sum_{i \in S_-} \underbrace{a_i x_i}_{\geq 0}}_{\in \conv(S_-)} \\
+        \text{where} \quad A &= \sum_{i \in S_+} a_i = \sum_{i \in S_-} (-a_i)
+    \end{align}
+    
+    Aside: this geometric consequence (any set of $d+2$ points can be partitioned into
+    two convex hulls which have non-empty intersection) is ``Radon's Theorem.''
+\end{proof}
+
+\subsection{Finite sample analysis of MDF via Generalized KS distance}
+
+Recall the general robust statistics setup of \cref{fig:robust-statistics-framework}.
+For finite-sample analysis, let $\tilde{p}_n$ be the empirical distribution over $\{X_i\}_{i=1}^n \sim \tilde{p}$ and consider $\hat\theta{\tilde{p}_n}$.
+
+From \cref{prop:mdf-modulus-error-bound}, we have
+\begin{align}
+    L(p^*, \hat{\theta}(\tilde{p}_n)) &\leq \fm(\cG, 2 \eps') \\
+    \eps' &= D(p^*, \tilde{p}_n) \\
+    \fm(\cG, 2 \eps) &= \max_{\substack{p, q  \in \cG \\ D(p,q) \leq 2 \eps}} L(p, \theta^*(q))
+\end{align}
+
+Previously we worked with $D = \TV$ and $L(p, \theta) = \|\theta - \mu(p)\|_2$.
+However, when $\cG = \cG_{gauss}$ we have
+\begin{align}
+    \TV(\tilde{p}_n, q) = 1 \qquad \forall q \in \cG_{gauss}
+\end{align}
+Moreover, in many cases $\TV(\tilde{p}_n, \tilde{p}) = 1$ even as $n \to \infty$.
+Hence, total-variation distance is too strong for us to work with and we need
+to weaken it.
+
+What would we like out of a weakening $\widetilde{\TV}$? 
+\begin{enumerate}
+    \item The modulus $\fm(\cG, \eps, \widetilde{\TV})$ remains small
+    \item $\widetilde{\TV}(\tilde{p}, \tilde{p}_n) \to 0$ as $n \to \infty$
+\end{enumerate}
+
+\begin{remark}
+    The two desidirata are competing: we want $\widetilde{\TV}$ to be big in
+    $\fm$ (1), but small in (2).
+\end{remark}
+
+\begin{proposition}
+    If $\widetilde{\TV} \leq \TV$, and $\hat{\theta}_{\widetilde{\TV}}(p) = \theta^*(q)$ where
+    $q \in \argmin_{q \in \cG} \widetilde{\TV}(p, q)$ (the MDF under $\widetilde{\TV}$), then
+    \begin{align}
+        L(p^*, \hat{\theta}_{\widetilde{\TV}}(\tilde{p}_n))
+        &\leq \fm(\cG, 2 \eps', \widetilde{\TV})
+    \end{align}
+    where $\eps' = \eps + \TV(\tilde{p}, \tilde{p}_n)$
+\end{proposition}
+
+\begin{proof}
+    Figure 9.12.1
+    
+    \begin{align}
+        L(p^*, \hat{\theta}_{\widetilde{\TV}}(\tilde{p}_n))
+        &\leq \fm(\cG, 2 \widetilde{\TV}(p^*, \tilde{p}_n), \widetilde{\TV}) \\
+        &\leq \underbrace{\widetilde{\TV}(p^*, \tilde{p}}_{\leq \eps} + \widetilde{\TV}(\tilde{p}, \tilde{p}_n)
+    \end{align}
+\end{proof}
+
+How do we construct $\widetilde{\TV}$? Let $\cH = \{ f : \cX \to \RR \}$ and define
+\begin{align}
+    \widetilde{\TV}_{\cH}(p, q) &= \sup_{f \in cH, \tau \in \RR}
+        \left\lvert \Pr_p[f(X) \geq \tau] - \Pr_q[f(X) \geq \tau] \right\rvert
+\end{align}
+Notice by taking $E = \{f(X) \geq \tau\}$ we have
+\begin{align}
+    \widetilde{\TV}_\cH &\leq \TV = \sup_E \lvert \Pr_p[E] - \Pr_q[E] \rvert
+\end{align}
+$\widetilde{\TV}$ is what's known as a \emph{generalized Kolmogorov-Smirnov distance}.
+
+\textbf{Before}: If $p$, $q$ are resilient (\cref{def:resilience}) then
+\begin{align}
+    \TV(p, q) \leq \eps &\implies \|\mu(p) - \mu(q)\|_2 \leq 2 \rho
+\end{align}
+
+What $\cH$ should we pick? One intuition is that knowledge of the 
+one dimensional projections ($\ex\braket{v,x}$ for all $v \in \RR^d$) 
+allows us to know $\ex[X]$. Hence, consider
+\begin{align}
+    \cH = \cH_{lin} = \{ x \mapsto \braket{v, x} : v \in \RR^d \}
+\end{align}
+
+We need to show our two desidirata:
+\begin{enumerate}
+    \item The modulus is bounded:
+    \begin{align}
+        p,q \in \cG \subset \cG_{\TV}(\rho, \eps) \land \widetilde{\TV}(p,q) \leq \eps
+        \implies \|\mu(p) - \mu(q)\|_2 \leq \sigma = 2 \rho\label{eq:9-12-desidirata-1}
+    \end{align}
+    \item $\widetilde{\TV}(\tilde{p}, \tilde{p}_n)$ is small. Specifically,
+    we will show
+    \begin{align}
+        \widetilde{\TV}(\tilde{p}, \tilde{p}_n) = O\left(\sqrt{d/n}\right)\label{eq:9-12-desidirata-2}
+    \end{align}
+\end{enumerate}
+
+\begin{proof}[Proof of \cref{eq:9-12-desidirata-1}]
+    Recall that before we used \nameref{lem:midpoint} to find some $r \leq \min\left\{\frac{p}{1 - \eps}, \frac{q}{1 - \eps}\right\}$ where
+    \begin{align}
+        \begin{cases}
+            \| \mu(p) - \mu(r) \|_2 \leq \rho \\
+            \|\mu(q) - \mu(r) \|_2 \leq \rho
+        \end{cases} \implies \text{triangle inequality}
+    \end{align}
+    Unfortunately, we don't know of a midpoint property under $\widetilde{\TV}$.
+    Instead, we will need the following key property:
+    
+    \begin{lemma}[Mean crossing property]\label{lem:mean-crossing-property}
+        For any $v$, there exists $\eps$-deletions $r_p \leq \frac{p}{1 - \eps}$ and $r_q \leq \frac{q}{1 - \eps}$ such that
+        \todo{Do we ned $p$ and $q$ resilient for this?}
+        \begin{align}
+            \ex_{r_q} \braket{v,x} \leq \ex_{r_p} \braket{v,x}
+        \end{align}
+    \end{lemma}
+    
+    Figure 9.10.2: If we had \nameref{lem:mean-crossing-property}, then $\braket{v, \mu_q - \mu_p} \leq 2 \rho$ for all $\|v \|_2 = 1$ hence $\|\mu_p - \mu_q\|_2 \leq 2 \rho$. In other words, the mean crossing property implies bounded modulus.
+    
+    More concretely, if we have the $\epsilon$ deletions
+    $r_p \leq \frac{p}{1 - \eps}$ and $r_q \leq \frac{q}{1 - \eps}$ then
+    \begin{align}
+        \underbrace{\ex_p \braket{v,x}}_{=\braket{v, \mu_p}}
+        &\leq \ex_{r_p}[\braket{v,x}] + \rho &&\text{resilience of $p$} \\
+        &\leq \ex_{r_q}[\braket{v,x}] + \rho &&\text{mean crossing} \\
+        &\leq \underbrace{\ex_{q}[\braket{v,x}]}_{=\braket{v, \mu_q}} + 2\rho &&\text{resilience of $q$}
+    \end{align}
+    Hence
+    \begin{align}
+        \braket{v, \mu_p - \mu_q}
+        &\leq 2 \rho
+    \end{align}
+    for all $\|v\|_2 = 1$. Therefore $\|\mu_p - \mu_q\|_2 \leq 2 \rho$.
+\end{proof}
+
+\begin{proof}[Proof of \nameref{lem:mean-crossing-property}]
+    Since we would like to shift the mean of $q$ to the left as much
+    as possible, delete $\eps$ mass from the right tail of $q$ (and delete the left tail of $p$).
+    
+    Equivalently, we can move all of the right tail of $q$ to $p$ and delete
+    the left tails of both distributions.
+    This allows us to use the property
+    \begin{align}
+        \Pr_p[\braket{v,x} \geq \tau] - \Pr_q[\braket{v,x} \geq \tau] \leq \eps \qquad \forall \tau
+    \end{align}
+    
+    $r_p$ \emph{stochastically dominates} $r_q$, i.e.
+    \begin{align}
+        \Pr_{r_p}[\braket{v,x} \geq \tau] \geq \Pr_{r_q}[\braket{v,x} \geq \tau] \underbrace{\cancel{-\eps}}_{\text{after moving $\eps$ over}}
+    \end{align}
+\end{proof}
+
+\begin{proof}[Proof of \cref{eq:9-12-desidirata-2}]
+    Recall the definition
+    \begin{align}
+        \widehat{\TV}_{\cH_{\lin}}(p,q)
+        &= \sup_{v \in \RR^d, \tau \in \RR} \left\lvert
+            \underbrace{\Pr_p[\braket{v,x} \geq \tau] - \Pr_q[\braket{v,x} \geq \tau]}_{\text{max discrepancy on halfspaces}}
+        \right\rvert
+    \end{align}
+    By \cref{thm:vc-inequality},
+    \begin{align}
+        \widehat{\TV}_{\cH_{\lin}}(\tilde{p}, \tilde{p}_n)
+        &\leq O\left(\sqrt{\frac{vc(\text{half spaces})}{n}}\right)
+        = O\left(\sqrt{\frac{d + \log \frac{1}{\delta}}{n}}\right)
+    \end{align}
+    with probability $\geq 1 - \delta$.
+\end{proof}
+
+\textbf{Consequences}:
+\begin{itemize}
+    \item For $(\rho, \eps + O(\sqrt{d/n}))$-resilient distributions, we can estimate mean with error $2 \rho$
+    \item For bounded covariance, $\rho(\eps) = O(\sqrt{\eps})$. Then
+    \begin{align}
+        \sqrt{\eps + \sqrt{d/n}}
+    \end{align}
+    The lower bound $\sqrt{\eps}$ is what we get with $n \to \infty$,
+    and $\sqrt{d/n}$ when $\eps \to 0$, so we would like $\sqrt{\eps} + \sqrt{d/n}$.
+    The looseness of the bond comes from $n \gg d / \eps^2$, whereas we would need $n \gg \frac{d}{\eps}$ but this analysis doesnt give it to us.
+    
+    \item For sub-Gaussians, $\rho(\eps) = O(\eps \sqrt{\log(1/\eps)})$.
+    When $n \gg \frac{d}{\eps^2}$ we get $O(\eps \sqrt{\log (1/\eps)}$.
+\end{itemize}
+In general, this analysis holds for $n \gg d / \eps^2$: whenever this holds, we can
+do as well as if we had infinite data. The analysis is tight in $d$ but loose in $\eps$.
+
+\todo{$\widetilde{\TV}$ similar to Tukey median, may be useful for challenge problem}
