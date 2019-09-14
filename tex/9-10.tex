@@ -26,7 +26,7 @@ How big is $\max_{i=1}^n X_i$?
 \begin{proof}
     By union bound, iid, and \nameref{eg:sub-gaussian-chernoff}
     \begin{align}
-        \Pr\left[\max_{i=1}^n X_i \geq t \right] 
+        \Pr\left[\max_{i=1}^n X_i \geq t \right]
         &\leq n \Pr[X_1 \geq t]
         \leq n \exp\left(-\frac{t^2}{2 \sigma^2}\right)
     \end{align}
@@ -41,7 +41,7 @@ How big is $\max_{i=1}^n X_i$?
 If instead we were interested in $\max_{i=1}^n \lvert X_i \rvert$, then a union bound on the two
 tail events $\{X_i \geq t\}$ and $\{-X_i \geq t\}$ (note $-X_i$ is still sub-Gaussian) gives
 \begin{align}
-    \Pr\left[\max_{i=1}^n \lvert X_i \rvert \geq t\right] &\leq 2 n \exp\left( -\frac{t^2}{2 \sigma^2} \right) 
+    \Pr\left[\max_{i=1}^n \lvert X_i \rvert \geq t\right] &\leq 2 n \exp\left( -\frac{t^2}{2 \sigma^2} \right)
     \label{eq:tail-bound-abs-value-two-factor}\\
     \max_{i=1}^n \lvert X_i \rvert &\in O\left( \sigma \left(\sqrt{\log 2 + \log n + \log \frac{1}{\delta}}\right) \right)
 \end{align}
@@ -95,12 +95,12 @@ To relate back to the two-step strategy outlined in \cref{eq:typical-sup-via-con
 This quantity looks promising as it is the sum of independent sub-Gaussian RVs.
 
 Since $\braket{X_i, v}$ is $\sigma$-sub-Gaussian, $\braket{X_i, v}^2$ is $\sigma^2$-sub-exponential (\cref{def:sub-gaussian-sub-exp-orlicz}, or equivalently \cref{eq:9-10-recap-multivar-sub-gaussian})
-and for any fixed $v \in \cS^{n-1}$ 
+and for any fixed $v \in \cS^{n-1}$
 \begin{align}
     \ex \exp\left(\frac{\braket{X_i, v}^2}{\sigma^2}\right) &\leq 2 \\
     \ex \exp\left(\frac{n}{\sigma^2} \frac{1}{n} \sum_{i=1}^n \braket{X_i, v}^2 \right)
-    = \prod_{i=1}^n \ex \exp \left(\frac{\braket{X_i, v}^2}{\sigma^2}\right) 
-    &\leq 2^n 
+    = \prod_{i=1}^n \ex \exp \left(\frac{\braket{X_i, v}^2}{\sigma^2}\right)
+    &\leq 2^n
 \end{align}
 where we used \nameref{lem:mgf-sum-composition} for the equality in the second line.
 
@@ -112,7 +112,7 @@ So we have accomplished the first step (showing the individual terms inside the 
 
 For the second step, we will take a sufficiently small discretization of the unit ball $\{\|v\|\leq 1\}$:
 \begin{lemma}\label{lem:9-10-unit-ball-packing}
-    There exists a finite set $N \subset \RR^d$ with $\lvert N \rvert \leq 9^d$ and 
+    There exists a finite set $N \subset \RR^d$ with $\lvert N \rvert \leq 9^d$ and
     \begin{align}
         \sup_{v \in \cS^{d-1}} v^\top M v &\leq 2 \sup_{v \in N} v^\top M v
     \end{align}
@@ -132,12 +132,12 @@ shows that
 \begin{proof}[Proof of \cref{lem:9-10-unit-ball-packing}]
     Let $N$ be a maximal packing of $\Ball_1(0)$ in $\RR^d$
     such that $\|u - v\|_2 \geq \frac{1}{4}$ for all $u \neq v \in N$.
-    
+
     As shown in \cref{fig:9-10-1}, if we place a $1/8$-radius ball at all the
     points in $N$ then (1) all the balls are disjoint and (2) the union of all the balls is
     contained in $\Ball_{9/8}(0)$ Therefore, by the (converse of the) pidgeonhole principle,
     $\lvert N \rvert \leq \frac{\Vol(\Ball_{9/8}(0))}{\Vol(\Ball_{1/8}(0))} = 9^d$.
-    
+
     \begin{figure}[H]
         \centering
         \includegraphics[width=0.6\textwidth]{figures/9-10-1.png}
@@ -146,7 +146,7 @@ shows that
             so the cardinality $\lvert N \rvert \leq \left(\frac{9/8}{1/8}\right)^d = 9^d$.}
         \label{fig:9-10-1}
     \end{figure}
-    
+
     Let $v \in \cS^{d-1}$ maximize $v^\top M v$
     and $u \in N$ such that $\|u - v\|_2 \leq \frac{1}{4}$.
     Such a $u$ must exist,
@@ -192,7 +192,7 @@ to the sum of independent bounded random variables to get:
 A subsequent union bound over $\lvert \cH \rvert$ reveals
 $t = O\left(\sqrt{\frac{1}{2n} \left( \log \lvert \cH \rvert + \log \frac{1}{\delta} \right)}\right)$
 
-\textbf{More common case}: $\lvert \cH \rvert = \infty$. 
+\textbf{More common case}: $\lvert \cH \rvert = \infty$.
 In this situation, we will bound $D_n$ using the geometry of $\cH$.
 To do so, we will quantify the geometry using the following definitions:
 
@@ -204,7 +204,7 @@ To do so, we will quantify the geometry using the following definitions:
     \end{align}
     It measures the number of possible ways to assign $\{0,1\}$ labels to $x_i$ which can be perfectly
     fit by $f \in \cH$.
-    
+
     The \emph{VC dimension}
     \begin{align}
         vc(\cH) &= \max\{ n : V_{\cH}(n) = 2^n\}\label{eq:vc-dim-def}
@@ -220,11 +220,13 @@ $\{f(X_i)\}_{i=1}^n$ directly and only deal with $V_{\cH}(n)$ terms.
 \begin{example}[VC dimension of half spaces]\label{eg:half-spaces-vc}
     Let $\cX = \RR^d$, $\cH = \text{half spaces} = \{f(x) = \ind[\braket{v,x} \geq \tau] : v \in \RR^d, \tau \in \RR \}$.
     Then $vc(\cH) = d+1$.
-    
-    We will see a proof next time, but for now consider an example where $d=2$.
+
+    We will see a full proof later in \cref{prop:vc-dim-half-spaces}, but for
+    now consider an example where $d=2$.
     We can always separate 3 points by drawing a line, so $vc(\cH) \geq 3$.
-    However, with 4 points there can be crossings (see \cref{fig:9-10-vc-hs}) which cannot be shattered.
-        \begin{figure}[H]
+    However, with 4 points there can be crossings (see \cref{fig:9-10-vc-hs})
+    which cannot be shattered.
+    \begin{figure}[H]
         \centering
         \includegraphics[width=0.6\textwidth]{figures/9-10-2.png}
         \label{fig:9-10-vc-hs}
@@ -246,7 +248,7 @@ $O(n^{\vc(\cH)})$ many terms of the form $\{f(X_i)\}_{i=1}^d$.
 \begin{theorem}[VC inequality]\label{thm:vc-inequality}
     With probability $\geq 1 - \delta$
     \begin{align}
-        D_n = O\left(\sqrt{\frac{vc(\cH) + \log \frac{1}{\delta}}{n}}\right)    
+        D_n = O\left(\sqrt{\frac{vc(\cH) + \log \frac{1}{\delta}}{n}}\right)
     \end{align}
 \end{theorem}
 
@@ -257,7 +259,7 @@ $O(n^{\vc(\cH)})$ many terms of the form $\{f(X_i)\}_{i=1}^d$.
     \end{align}
     The $\log \frac{1}{\delta}$ tail bound follows from McDarmid's inequality,
     and removing the extra $\log n$ refines the argument we will give using a tool called chaining.
-    
+
     \textbf{Incorrect proof path}: Notice that
     \begin{align}
         D_n &= \sup_{f \in \cH} \left\lvert
@@ -268,11 +270,11 @@ $O(n^{\vc(\cH)})$ many terms of the form $\{f(X_i)\}_{i=1}^d$.
     Let $vc(\cH) = d$.
     By \cref{lem:sauer-shelah}, there are only $O(n^d)$ distinct $(f(X_1), \ldots, f(X_n))$
     so a union bound implies $t = O\left(\sqrt{\frac{d \log n + \log \frac{1}{\delta}}{2n}}\right)$
-    
+
     This is incorrect because applying Sauer-Shelah requires us to condition on a specific realization of $\{X_i\}_{i=1}^n$
     (after which we know there are at most $V_{\cH}(n)$ distinct values of $(f(X_1), \ldots, f(X_n))$).
     After conditioning, there's no randomness left for applying \nameref{corr:hoeffding-inequality} to get concentration.
-    
+
     \textbf{Solution}: Introduce additional randomness using \emph{symmetrization}.
     Introduce independent copies $X_i'$ and note
     \begin{align}
@@ -286,17 +288,17 @@ $O(n^{\vc(\cH)})$ many terms of the form $\{f(X_i)\}_{i=1}^d$.
     $\lvert \cdot \rvert$ is convex, so by Jensen's inequality
     \begin{align}
         \ex[D_n]
-        \leq \ex_{X} \left[ \sup_{f \in \cH} \ex_{X'} \left[\left\lvert 
+        \leq \ex_{X} \left[ \sup_{f \in \cH} \ex_{X'} \left[\left\lvert
             \frac{1}{n} \sum_{i=1}^n (f(X_i) - f(X_i'))
         \right\rvert \right]\right]
     \end{align}
-    Also, $\sup_y \ex f(X,y) \leq \ex \sup_y f(X,y)$ for any function $f$ 
+    Also, $\sup_y \ex f(X,y) \leq \ex \sup_y f(X,y)$ for any function $f$
     (since $\ex f(X,y) \leq \ex \sup_y f(X,y)$ then take supremum on left-hand side, or see Fatou-Lebesgue theorem)
     hence we can move $\ex_{X'}$ out of $\sup_{f \in \cH}$ to get
     \begin{align}
         \ex[D_n]
         &\leq \ex_{X, X'}\left[
-        \sup_{f \in \cH} \left\lvert \frac{1}{n} \sum_{i=1}^n ( f(X_i) - f(X_i') ) 
+        \sup_{f \in \cH} \left\lvert \frac{1}{n} \sum_{i=1}^n ( f(X_i) - f(X_i') )
         \right\rvert\right]
     \end{align}
     Here is where the randomness from symmetrization is added:
@@ -304,7 +306,7 @@ $O(n^{\vc(\cH)})$ many terms of the form $\{f(X_i)\}_{i=1}^d$.
     \begin{align}
         \ex[D_n]
         &\leq \ex_{X, X', \eps}\left[
-        \sup_{f \in \cH} \left\lvert \frac{1}{n} \sum_{i=1}^n \eps_i ( f(X_i) - f(X_i') ) 
+        \sup_{f \in \cH} \left\lvert \frac{1}{n} \sum_{i=1}^n \eps_i ( f(X_i) - f(X_i') )
         \right\rvert\right] \label{eq:9-10-symmetrized-need-concentration}
     \end{align}
     Condition on $X, X'$ and let $f(X_i) = a \in V_{\cH}(\{x_1, \ldots, x_n\})$
@@ -312,7 +314,7 @@ $O(n^{\vc(\cH)})$ many terms of the form $\{f(X_i)\}_{i=1}^d$.
     \begin{align}
         \sup_{f \in \cH}
             \left\lvert \frac{1}{n} \sum_{i=1}^n \eps_i(f(X_i) - f(X_i')) \right\rvert
-        &= \sup_{a, b} 
+        &= \sup_{a, b}
             \underbrace{
                 \left\lvert \frac{1}{n} \sum_{i=1}^n \eps_i (a_i - b_i)\right\rvert
             }_{\Pr[\lvert \cdot \rvert \geq t] \leq 2 \exp(\frac{-n t^2}{2})}
@@ -325,7 +327,7 @@ $O(n^{\vc(\cH)})$ many terms of the form $\{f(X_i)\}_{i=1}^d$.
     and union bound over the $O(n^{2d})$ (by \nameref{lem:sauer-shelah}, squared since there is both $f(X)$ and $f(X')$) distinct $f(X)$ and $f(X')$
     \begin{align}
         \Pr\left[ \sup_{f \in \cH}
-            \left\lvert \frac{1}{n} \sum_{i=1}^n \eps_i(f(X_i) - f(X_i')) \right\rvert \geq t 
+            \left\lvert \frac{1}{n} \sum_{i=1}^n \eps_i(f(X_i) - f(X_i')) \right\rvert \geq t
         \middle| X, X' \right]
         &\leq (2 n^{2d}) 2 \exp\left(\frac{-n t^2}{2} \right) \\
     \end{align}
@@ -336,7 +338,7 @@ $O(n^{\vc(\cH)})$ many terms of the form $\{f(X_i)\}_{i=1}^d$.
         \ex[D_n]
         &\leq \ex_{X, X'}\left[
             \ex_{\eps}\left[
-                \sup_{f \in \cH} \left\lvert \frac{1}{n} \sum_{i=1}^n \eps_i ( f(X_i) - f(X_i') ) 
+                \sup_{f \in \cH} \left\lvert \frac{1}{n} \sum_{i=1}^n \eps_i ( f(X_i) - f(X_i') )
                 \middle| X, X'\right]
         \right\rvert\right]
         = O\left(

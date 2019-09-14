@@ -5,18 +5,17 @@
         \xymatrix{
             \txt{train \\ $\tilde{p}$} \ar[d] \ar@{<->}[r]^-{D(\tilde{p}, p^*) \leq \eps} \ar[dr]
             & \txt{test\\$p^* \in \cG$} \ar[dr] \\
-            \txt{$X_1, \ldots, X_n$\\samples} \ar[r] & 
+            \txt{$X_1, \ldots, X_n$\\samples} \ar[r] &
             \txt{$\hat\theta(\tilde{p})$\\estimator} \ar[r] &
             \txt{$L(p^*, \hat\theta)$\\loss}
         }
     }
-    \label{fig:robust-statistics-framework}
     \caption{Overview of the framework. Training distribution $\tilde{p}$ differs
         from test distribution $p^*$ by some discrepancy $D(\tilde{p}, p^*) \leq \epsilon$.
         We constrain $p^* \in \cG$ to encode distributional assumptions.
         Given an estimator $\hat\theta$ trained using samples $X_1, \ldots, X_n \sim \tilde{p}$,
         we want to control the loss $L(p^*, \hat\theta)$ incurred at test time.
-    }
+    }\label{fig:robust-statistics-framework}
 \end{figure}
 
 
@@ -60,7 +59,7 @@ because we eliminate $\tilde{p}$ and focus the theory around $\cG$.
     \begin{align}
         D(q, \tilde{p}) = \min_{g \in \cG} D(g, \tilde{p}) \leq D(p^*, \tilde{p}) \leq \eps
     \end{align}
-    
+
     The following drawing visualizes the argument.
     \begin{figure}[H]
         \centering
@@ -71,7 +70,7 @@ because we eliminate $\tilde{p}$ and focus the theory around $\cG$.
             $D(p^*, q) \leq 2\eps$
         }
     \end{figure}
-    
+
     So $D(p^*, q) \leq 2 \eps$ and we can conclude
     \begin{align}
         \fm \geq L(p^*, \theta^*(q))
@@ -83,10 +82,10 @@ Consider a Gaussian distributional assumption $\cG_{gauss} = \{\cN(\mu, I) : \mu
 
 \begin{lemma}\label{lem:gauss-tv}
     $\TV(\cN(\mu, I), \cN(\mu', I)) \asymp \Theta(\min(\|\mu - \mu'\|_2, 1))$
-    
+
     Therefore
     \begin{align}
-         \fm(\cG_{gauss}, \eps) = \sup_{\substack{p,q \in \cG\\ \TV(p,q) \leq 2 \eps}} \|\mu(p) - \mu(q)\|_2 = \Theta(\eps)   
+         \fm(\cG_{gauss}, \eps) = \sup_{\substack{p,q \in \cG\\ \TV(p,q) \leq 2 \eps}} \|\mu(p) - \mu(q)\|_2 = \Theta(\eps)
     \end{align}
     for sufficiently small $\eps$.
 \end{lemma}
@@ -112,13 +111,13 @@ Consider a Gaussian distributional assumption $\cG_{gauss} = \{\cN(\mu, I) : \mu
             in definition of $\TV$) is equal
             to the probability mass between $[-u/2,u/2]$ for a Gaussian.}
     \end{figure}
-  
+
     Note that $e^{-t^2/2} \geq \frac{1}{2}$ if $\lvert t \rvert < 1$, so $\TV = \Omega(\min(u,1))$
     which can be seen by splitting the integral and examining the two cases where
     $\frac{u}{2} > 1$ (which yields the $1$) and $\frac{u}{2} < 1$ (which yields the $u$).
-    
+
     Similarly, $e^{-t^2/2} \leq 1$ for all $t > 0$ so $\TV = O(\min(u,1))$.
-    
+
     To generalize to higher dimensions, note identity covariance implies rotational invariance so we can
     rotate and translate such that the two means are on the first coordinate axis and separated
     by $\|\mu - \mu'\| = \lvert \mu_1 - \mu_1' \rvert$. In particular, $\mu_i = 0$ for $i \neq 1$ hence
@@ -135,7 +134,7 @@ As a less restrictive family, consider distributions with bounded covariance:
 
 We begin with an important lemma which will be used to prove the modulus of continuity for $\cG_{cov}$
 and generalized in the following section.
-\begin{lemma}\label{lem:midpoint}
+\begin{lemma}[Midpoint lemma]\label{lem:midpoint}
     If $\TV(p,q) \leq \eps$ then exists a \emph{midpoint} distribution $r$ such that
     $r \leq \min\{\frac{p}{1 - \eps}, \frac{q}{1 - \eps}\}$ and
     \begin{enumerate}
@@ -181,7 +180,7 @@ and generalized in the following section.
     \end{align}
     (This is a common trick for moving from conditioning on an event to
     conditioning on its complement in zero mean functionals).
-    
+
     (Chebyshev in $\RR^d$) By linearity of expectation and Jensen's inequality
     \begin{align}
         \| \ex_p[X - \mu(p) \mid E^c] \|_2
@@ -232,7 +231,7 @@ for other families:
     \begin{align}
         p(E) \geq 1 - \eps \implies \|\ex_p[X \mid E] - \ex_p[X]\| \leq \rho
     \end{align}
-    
+
     We let $\cG_{TV}(\rho, \epsilon)$ be the set of all $(\rho, \epsilon)$-resilient distributions.
 \end{definition}
 
@@ -256,7 +255,7 @@ for other families:
 \end{example}
 
 Combining with \cref{prop:mdf-modulus-error-bound}, for squared error loss we can say
-\begin{corollary}[Modulus of continuity bound for resilient distributions]
+\begin{corollary}[Modulus of continuity bound for resilient distributions]\label{corr:mod-bound-resilient}
     \begin{align}
         \fm(\cG_{TV}(\rho, \eps), \eps) \leq 2 \rho
     \end{align}
@@ -278,32 +277,32 @@ estimator which has loss independent of $d$.
         \item Non-decreasing
         \item $\psi(0) = 0$, $\psi(x) \to \infty$ as $x \to \infty$
     \end{enumerate}
-    
+
     Given an Orlicz function $\psi$, the \emph{Orlicz norm} or $\psi$-norm of a
     random variable $X$ is
     \begin{align}
         \|X\|_\psi &= \inf \left\{t : \ex \psi\left(\frac{\lvert X \rvert}{t} \right) \leq 1 \right\}
     \end{align}
-    For multivariate $X \in \RR^d$, define 
+    For multivariate $X \in \RR^d$, define
     \begin{align}
         \|X\|_\psi = \inf \left\{t > 0 : \sup_{v \in \cS^{d-1}} \|\braket{X, v}\|_\psi \leq t \right\}
         \label{def:orlicz-norm-multivar}
     \end{align}
     In other words, $X$ has bounded $\psi$-norm if all of its one dimensional projections do.
-    
+
     Let $\cG_\psi(\sigma) = \{ X : \|X - \ex[X]\|_\psi \leq \sigma \}$.
 \end{definition}
 
 \begin{example}
     $\psi(x) = x^k$ gives $\|X\|_\psi = \left(\ex[\lvert X \rvert^k]\right)^{1/k}$,
     which looks like $L_p$ norms. In fact, these are precisely distributions with bounded $k$th moments.
-    
+
     For $\psi(x) = x^2$, we have $\cG_{\psi}(\sigma) = \cG_{cov}(\sigma)$.
 \end{example}
 
 \begin{definition}[Sub-Gaussian/Sub-Exponential]\label{def:sub-gaussian-sub-exp-orlicz}
     For $\psi_2(x) = e^{x^2} - 1$, $\cG_{\psi_2}(\sigma)$ are called the $\sigma$-sub-Gaussian random variables.
-    
+
     For $\psi_1(x) = e^x - 1$, $\cG_{\psi_1}(\sigma)$ are called the $\sigma$-sub-exponential random variables.
 \end{definition}
 
@@ -311,7 +310,7 @@ The next proposition shows that any distribution with bounded Orlicz norm is res
 \begin{proposition}[Bounded Orlicz norm implies resilience]\label{lem:orlicz-norm-resilient}
     $\cG_{\psi}(\sigma) \subset \cG_{TV}(2 \sigma \eps \psi^{-1}(\frac{1}{\eps}), \eps)$
     if $\eps < 1/2$.
-    
+
     $\psi(x) \to \psi^{-1}(x) = \sqrt{x} \to \eps \psi^{-1}(1/\eps) = \sqrt{\eps}$
 \end{proposition}
 
