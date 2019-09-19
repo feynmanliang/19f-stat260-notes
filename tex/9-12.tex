@@ -299,14 +299,14 @@ We need to show our two desidirata:
 \begin{proof}[Proof of \cref{eq:9-12-desidirata-2}]
     Notice
     \begin{align}
-        \widehat{\TV}_{\cH_{\lin}}(p,q)
+        \widehat{\TV}_{\cH_{lin}}(p,q)
         &= \sup_{v \in \RR^d, \tau \in \RR} \left\lvert
             \underbrace{\Pr_p[\braket{v,x} \geq \tau] - \Pr_q[\braket{v,x} \geq \tau]}_{\text{max discrepancy on halfspaces}}
         \right\rvert
     \end{align}
     By \nameref{thm:vc-inequality} and \myref{prop:vc-dim-half-spaces}
     \begin{align}
-        \widehat{\TV}_{\cH_{\lin}}(\tilde{p}, \tilde{p}_n)
+        \widehat{\TV}_{\cH_{lin}}(\tilde{p}, \tilde{p}_n)
         &\leq O\left(\sqrt{\frac{vc(\text{half spaces})}{n}}\right)
         = O\left(\sqrt{\frac{d + \log \frac{1}{\delta}}{n}}\right)
     \end{align}
@@ -319,7 +319,7 @@ We need to show our two desidirata:
     \item For bounded covariance, \cref{corr:mod-cont-cov} gave us
         $\rho(\eps) = O(\sqrt{\eps})$ hence
     \begin{align}
-        L(p^*, \tilde{\theta}_{\widetilde{\TV}}(\tilde{p}_n)) 
+        L(p^*, \tilde{\theta}_{\widetilde{\TV}}(\tilde{p}_n))
         \leq O\left(\sqrt{\eps + \sqrt{d/n}}\right)
     \end{align}
     The lower bound $\sqrt{\eps}$ is what we get in the infinite sample $n \to \infty$
