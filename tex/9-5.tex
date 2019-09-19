@@ -22,9 +22,9 @@ This lecture:
 
 \begin{example}
     A slot machine has expected payout of \$5 and always pays out positive.
-    
+
     \textbf{Question}: What is the maximum probability of $\geq \$100$?
-    
+
     \textbf{Answer}: 5\%, by letting $P(X=\$0) = 0.95$ and letting $P(X=\$100) = 5\%$.
 \end{example}
 
@@ -36,7 +36,7 @@ The preceding example is an instance of \nameref{thm:markov}:
     \end{align}
 \end{theorem}
 \begin{proof}
-    \begin{align}  
+    \begin{align}
         t \ex[X] \ind\{X \geq t \ex[X]\} &\leq X
     \end{align}
     Take expectation of both sides and rearrange.
@@ -158,7 +158,7 @@ so the empirical mean concentrates about the population mean as the number of sa
 
 \subsection{Exponential tails and Chernoff bounds}
 
-Another approach which can yield exponential tail bounds is through the \nameref{def:moment-generating-function}. 
+Another approach which can yield exponential tail bounds is through the \nameref{def:moment-generating-function}.
 \begin{definition}[Moment Generating Function]\label{def:moment-generating-function}
     Let $X$ be a random variable with bounded moments.
     The \emph{moment generating function} (MGF) of $X$ is
@@ -231,7 +231,7 @@ get exponentially decaying tail bounds:
     \begin{align}
         \lambda (X - \mu) &\leq \frac{\lambda^2 \sigma^2}{4} + \frac{(X - \mu)^2}{\sigma^2}
     \end{align}
-    
+
     \begin{remark}
         We can also show
         \begin{align}
@@ -240,7 +240,7 @@ get exponentially decaying tail bounds:
         \end{align}
         where $\sigma' \leq \sqrt{3} \sigma$. This is sometimes taken as definition of $\sigma'$-sub-Gaussian.
     \end{remark}
-    
+
     Applying \nameref{thm:chernoff} shows
     \begin{align}
         \Pr[X - \mu \geq t]
@@ -250,7 +250,7 @@ get exponentially decaying tail bounds:
     \end{align}
     This explains the name ``$\sigma'$-sub-Gaussian'': the tail probabilities are decaying faster than those of a Gaussian
     distribution with variance $\sigma'$.
-    
+
     By \myref{lem:mgf-sum-composition}, we have that the sum $S = \sum_i^n X_i$ of $\sigma'$-sub-Gaussian RVs
     is itself $\frac{\sigma'}{\sqrt{n}}$-sub-Gaussian and
     satisfies the tail bound
@@ -303,13 +303,13 @@ and take log (which is additive)
     &= \log\left(
         1 + \ex[(X - \mu)^2] \frac{\lambda^2}{2} + \ex[(X - \mu)^3] \frac{\lambda^3}{6} + \cdots
     \right) \label{eq:cumulant-function-taylor-series} \\
-    &= 1 + \sum_{n=1}^\infty \frac{\kappa_n(X)}{n!}\lambda^n 
+    &= 1 + \sum_{n=1}^\infty \frac{\kappa_n(X)}{n!}\lambda^n
 \end{align}
 This leads to the cumulant generating function:
 \begin{definition}[Cumulants]
     The \emph{cumulant generating function} for a random variable $X$ is
     \begin{align}
-        K_X(\lambda) &= \log \ex \exp(\lambda X) = 1 + \sum_{n=1}^\infty \frac{\kappa_n(X)}{n!}\lambda^n 
+        K_X(\lambda) &= \log \ex \exp(\lambda X) = 1 + \sum_{n=1}^\infty \frac{\kappa_n(X)}{n!}\lambda^n
     \end{align}
     $\kappa_n(X)$ is called the $n$th cumulant of $X$.
 \end{definition}
