@@ -1,4 +1,4 @@
-\section{9/19/2019: Ledoux-Talagrand and Truncated Moments}
+\section{9/19/2019}
 
 \subsection{Recap}
 
@@ -12,7 +12,7 @@
   \item $\cG = \cG_k(\sigma) =$ bounded $k$th moments
     (needed $n \geq d^{k/2}$ samples if $\cM = \cG$)
   \item $\cM = \cG_{\TV}(\rho, \eps) =$ $(\rho, \eps)$-resilient distributions
-    with $\rho - \cO(\sigma \eps^{1 - 1/k})$
+    with $\rho = \cO(\sigma \eps^{1 - 1/k})$
 \end{itemize}
 
 \subsection{Truncated moments bounds}
@@ -26,6 +26,7 @@ function
   \end{cases}
 \end{align}
 This function behaves as $x^k$ until $x=x_0$, after which it is linear.
+See \cref{fig:tilde-psi-k}.
 Note that $\tilde{\psi}_k$ is $L$-Lipschitz with $L = k x_0^{k-1}$.
 
 \textbf{Todo this lecture:}
@@ -37,31 +38,44 @@ Note that $\tilde{\psi}_k$ is $L$-Lipschitz with $L = k x_0^{k-1}$.
 
 \begin{definition}[Stochastic Dominance]
   Let $Y, Z$ be RVs on $\RR$.
-  $Z$ \emph{1st-order stochastically dominates} $Y$ if
+  $Z$ \emph{1st-order stochastically dominates} $Y$,
+  denoted by $Z \succeq_1 Y$, if
   \begin{align}
     \ex[f(Z)] \geq \ex[f(Y)]
   \end{align}
   for all increasing $f$.
 
-  \textbf{Intuition}: $Y \mapsto Z$ by moving CDF to the right:
-
-  Figure 9.19.1
-
+  \begin{figure}[H]
+    \begin{center}
+      \includegraphics[width=0.4\textwidth]{figures/9-19-1.png}
+    \end{center}
+    \caption{Intuition for $Z \succeq_1 Y$: going from $Y$ to $Z$ shifts
+    cumulative distribution function (CDF) to the right}
+  \end{figure}
 \end{definition}
 
-\begin{lemma}
-  Let $Y$ have probability $1/2$ of $y_1$ or $y_2$ ($y_1 \leq y_2$)
-  and $Z$ same for $z_1 \leq z_2$.
-
-  Thten $Z$ stochastically (1st order) dominates $Y$ iff $y_1 \leq z_1$
+\begin{lemma}[Two-point first order stochastic dominance]
+  For $y_1 \leq y_2$ and $z_1 \leq z_2$, let
+  \begin{align}
+    Y &\sim \frac{1}{2} \delta_{y_1} + \frac{1}{2} \delta_{y_2} \\
+    Z &\sim \frac{1}{2} \delta_{z_1} + \frac{1}{2} \delta_{z_2}
+  \end{align}
+  Then $Z \succeq_1 Y$ iff $y_1 \leq z_1$
   and $y_2 \leq z_2$.
 \end{lemma}
 
 \begin{proof}
-  Fig 9.19.2
+  For the necessity, consider $f_\tau(x) = \ind\{x \geq \tau\}$ a step function.
+  \begin{figure}[H]
+    \begin{center}
+      \includegraphics[width=0.5\textwidth]{figures/9-19-2.png}
+    \end{center}
+  \end{figure}
+  A violation of $y_1 \leq z_1$ and $y_2 \leq z_2$ would imply for some $\tau$ both
+  of the $y_i \leq \tau$ but only $z_1 \leq \tau$. The increasing function $f_\tau$
+  gives a contradiction to $Z \succeq_1 Y$, as
   \begin{align}
-    \ex[f(Y)] &= 1 \\
-    \ex[f(Z)] &\leq \frac{1}{2} \\
+    \ex[f_\tau(Y)] = 1 \not\leq \frac{1}{2} = \ex[f_\tau(Z)]
   \end{align}
 
   For the sufficiency,
@@ -74,30 +88,51 @@ Note that $\tilde{\psi}_k$ is $L$-Lipschitz with $L = k x_0^{k-1}$.
 \end{proof}
 
 \begin{definition}[Second order stochastic dominance]
-  $Z$ \emph{2nd-order stochasttically dominates} $Y$ if
+  $Z$ \emph{2nd-order stochasttically dominates} $Y$, denoted $Z \succeq_2 Y$, if
   \begin{align}
     \ex[g(Y)] \leq \ex[g(Z)]
   \end{align}
   for all convex, increasing $g$
 
-  \textbf{Intuition}: $Y \mapsto Z$ by pushing to right and spreading out
+  \textbf{Intuition}: $Y \to Z$ by pushing CDF to right and spreading out
 \end{definition}
 
-\begin{lemma}\label{lem:two-point-2o-sd}
-  Let $Y$ have probability $1/2$ being $y_1$ or $y_2$ and same for $Z$.
+\begin{lemma}[Two-point second order stochastic dominance]\label{lem:two-point-2o-sd}
+  For $y_1 \leq y_2$ and $z_1 \leq z_2$, let
+  \begin{align}
+    Y &\sim \frac{1}{2} \delta_{y_1} + \frac{1}{2} \delta_{y_2} \\
+    Z &\sim \frac{1}{2} \delta_{z_1} + \frac{1}{2} \delta_{z_2}
+  \end{align}
   If
   \begin{align}
     \frac{1}{2}(y_1 + y_2) &\leq \frac{1}{2}(z_1 + z_2) \\
     z_2 &\geq y_2
   \end{align}
-  then $Z \preceq Y$.
+  then $Z \succeq_2 Y$.
 \end{lemma}
 
 \begin{proof}
-  Figure 9.17.3
+  Necessity follows from considering ramp functions such as:
+  \begin{figure}[H]
+    \begin{center}
+      \includegraphics[width=0.5\textwidth]{figures/9-19-3.png}
+    \end{center}
+    \caption{Example of a ramp function to show necessity that $y_2 \leq z_2$.
+      The ramp function should be drawn to be convex (i.e. continue increasing)}
+  \end{figure}
+  $g$ is convex and we see $\ex[g(Z)] = 0 \not\geq \ex[g(Y)]$
+
+  \todo{Sufficiency}
 \end{proof}
 
-\begin{theorem}[Ledoux-Talagrand]
+\subsection{Ledoux-Talagrand inequality}%
+
+\myref{thm:ledoux-talagrand} is a statement involving maxima of randomly signed
+sums of Lipschitz functions.
+We saw an incomplete presentation in \cref{ssec:ledoux-talagrand-first} and
+today will give the complete proof.
+
+\begin{theorem}[Ledoux-Talagrand]\label{thm:ledoux-talagrand}
   Let $\phi : \RR \to \RR$ $L$-Lipschitz, $\phi(0) = 0$,
   $\{\eps_i\}_{i=1}^n \simiid \Rad$, $T =$ set of $n$-tuples $(t_1,\ldots,t_n)$
   (think $t_i = \braket{X_i - \mu, v}$). Then
@@ -134,6 +169,8 @@ supremum (for $L = 1$, if $\eps_i$ were Gaussian)
 So we would expect $Z$ to be more ``spread out'' because it has greater
 variance.
 
+We will prove the theorem for $n=2$ and then generalize by induction.
+
 \begin{proof}[Proof for $n=2$]
   Let $T$ be the set of pairs $(a,b)$, $\phi$ be $1$-Lipschitz.
   Need to show
@@ -159,7 +196,11 @@ variance.
     \Pr[Z = z_2 = \max(a_- - b_-, a_+ + b_-+)] &= 1/2
   \end{align}
 
-  Fig 9.19.4
+  \begin{figure}[H]
+    \begin{center}
+      \includegraphics[width=0.5\textwidth]{figures/9-19-4.png}
+    \end{center}
+  \end{figure}
 
   By Lipschitz condition and definition of $y_i$, $z_i$:
   \begin{align}
@@ -215,22 +256,27 @@ variance.
 \end{proof}
 
 
-\textbf{Goal}: Bound $\|\hat{\mu}_n - \mu\|_2$
+\subbsection{Bounding the empirical mean deviation}
 
-Problem last time:
+We now return to bounding $\|\mu(p_n^*) - \mu(p^*)\|_2$, which is the other
+step required before we can apply \cref{prop:projection-bound-expand-G-to-M}
+for expanding the set.
+
+The problem we encountered last time was the presence of a norm:
 \begin{align}
   \ex[ \|\hat{\mu}_n - \mu\|_2^k ]
-  &= \ex[ \| \frac{1}{n} \sum_{i=1}^n (X_i - \mu)\|_2^k ]
+  &= \ex \left[ \left\| \frac{1}{n} \sum_{i=1}^n (X_i - \mu)\right\|_2^k \right]
 \end{align}
 One way to handle the norm is to take a supremum over inner products with
-$v \in \cS^{d-1}$. Another is to use decouopling:
+$v \in \cS^{d-1}$, since $\|w\|_2 = \sup_{v \in \cS^{d-1}} \braket{w,v}$.
+Another is to use decoupling, which we will demonstrate today.
 
 \textbf{Decoupling technique}: Use Khintchine's inequality to add in
-an $\ex_\eps$. Symmetrization would have added random sign variables across
-$n$ (one for each pair $(X_i, X_i')$), here we are addding random sign
-variables across $d$.
+an $\ex_\eps$ with one $\eps_i$ per dimension $d$.
+Contrast this to symmetrization, which would have added random sign variables
+across $n$ (one for each pair $(X_i, X_i')$).
 
-\begin{lemma}[Khintchine's inequality]
+\begin{lemma}[Khintchine's inequality]\label{lem:khintchine}
   Let $\eps = (\eps_1, \ldots, \eps_n) \simiid \Rad$.
   \begin{align}
     A_k \|Z\|_2 \leq \ex_\eps[\lvert \braket{\eps,z}\rvert^k]^{1/k} \leq B_k \|Z\|_2
@@ -238,18 +284,19 @@ variables across $d$.
   with $A_k = \Theta(1)$ and $B_k = \Theta(\sqrt{k})$ if $k \geq 1$.
 \end{lemma}
 
-Proceeding
+Applying the lower $\Theta(1)$ bound from \nameref{lem:khintchine}:
 \begin{align}
   \ex_X [ \|\hat{\mu}_n - \mu\|_2^k ]
-  &= \ex_X [ \| \frac{1}{n} \sum_{i=1}^n (X_i - \mu)\|_2^k ] \\
-  &\overset{?}{=} \ex_{X,\eps} [ \lvert \braket{\frac{1}{n} \sum_{i=1}^n (X_i - \mu), \eps} \rvert^k ] \\
-  &\leq \cO(1)^k \ex_{X, \eps}\left[
+  &= \ex_X \left[ \left\| \frac{1}{n} \sum_{i=1}^n (X_i - \mu)\right\|_2^k \right] \\
+  &\leq \cO(1)^k \ex_{X,\eps} \left[ \left\lvert \braket{\frac{1}{n} \sum_{i=1}^n (X_i - \mu), \eps} \right\rvert^k \right] \\
+  &= \cO(1)^k \ex_{X, \eps}\left[
     \left\lvert
-      \frac{1}{n} \sum^{n}_{i=1} \underbrace{\braket{X_i - \mu, \eps}}_{\eqqcolon z_i}
+      \frac{1}{n} \sum^{n}_{i=1} \braket{X_i - \mu, \eps}
     \right\rvert^k
   \right]
 \end{align}
-Now pulling out the $n^{-k}$ and applying Rosenthal's inequality
+Now pulling out the $n^{-k}$ and applying \ref{lem:rosenthal-ineq}
+with $Z_i = \braket{X_i - \mu, \eps}$
 \begin{align}
   \ex[\lvert \sum_i z_i \rvert^k]
   &\leq \cO(k)^k \sum_i \ex[\lvert Z_i \rvert^k]
@@ -290,7 +337,7 @@ as $n \geq k^{2k / (k-2)}$.
 \textbf{Takeaway}: The average deviation $\ex[\|\hat{\mu}_n - \mu\|_2^k]^{1/k} \approx \cO(\sqrt{k d / n} \sigma_2)$.
 
 
-\subsection{Tying back to what we acre}
+\subsection{Zooming out}
 
 \textbf{Goal}: we want the following to concentrate
 \begin{align}

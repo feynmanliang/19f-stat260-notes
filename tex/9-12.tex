@@ -156,7 +156,15 @@ We have two desidirata for $\widetilde{\TV}$:
     \end{align}
 \end{proof}
 
-How do we construct $\widetilde{\TV}$?
+\begin{remark}
+    The change from $\eps$ to $\eps'$ in \cref{prop:mdf-tilde-tv} is why the
+    second desidirata is relevant.  We will see that in particular it will shift us
+    to consider $\cG_{\TV}(\rho, \eps') \subsetneq \cG_{\TV}(\rho, \eps)$ when we
+    later bound the modulus.
+\end{remark}
+
+We will consider the following weakening of total variation distance:
+
 \begin{definition}[Generalized Kolmogorov-Smirnov distance]\label{def:tilde-tv}
     For a family of functions $\cH = \{ f : \cX \to \RR \}$,
     the \emph{generalized Kolmogorov-Smirnov distance}
@@ -188,34 +196,43 @@ How do we construct $\widetilde{\TV}$?
 What $\cH$ should we pick? The answer depends on what we are trying to estimate
 (i.e. choice of $L(p, \theta)$). For now, consider mean estimation
 (i.e. $L(p,\theta) = \|\theta - \mu(p)\|_2$).
-One intuition is that knowledge of the one dimensional
-projections ($\ex\braket{v,x}$ for all $v \in \RR^d$) allows us to know
-$\ex[X]$, so it's reasonable to consider
+Motivated by the fact that knowledge of the one dimensional
+projections ($\ex\braket{v,x}$ for all $v \in \RR^d$) allows us to determine
+$\ex[X]$, we consider
 \begin{align}
     \cH = \cH_{lin} = \{ x \mapsto \braket{v, x} : v \in \RR^d \}
 \end{align}
 
-To bound the modulus, recall that previously if $p, q \in \cG_{\TV}$ are
-\nameref{def:resilience}s then \cref{corr:mod-bound-resilient} gave us
+To bound the modulus, recall that resilient distributions were convenient for $D = \TV$ because
+if $p, q \in \cG_{\TV}(\rho, \eps)$ then \myref{corr:mod-bound-resilient} gave us
 \begin{align}
     \TV(p, q) \leq \eps &\implies \|\mu(p) - \mu(q)\|_2 \leq 2 \rho
 \end{align}
-Similarly, here we will also restrict our distributional assumptions to
-be within resilient distributions: $\cG \subset \cG_{\TV}$.
+Here, we will also restrict attention to resilient distributions $\cG \subset \cG_{\TV}$.
+To satisfy desidirata 1, we generalize this result to $D = \widetilde{\TV}$ in
+the following way:
+\begin{proposition}[Generalized modulus bound]\label{eq:9-12-desidirata-1}
+    If $p,q \in \cG \subset \cG_{\TV}(\rho, \eps')$ and $\widetilde{\TV}(p,q) \leq \eps'$, then
+    \begin{align}
+        \|\mu(p) - \mu(q)\|_2 \leq 2 \rho
+    \end{align}
+    In other words, $\fm(\cG, \eps', \widetilde{\TV}) \leq 2 \rho$
+\end{proposition}
 
-We need to show our two desidirata:
-\begin{enumerate}
-    \item The modulus is bounded:
+However, as shown in \cref{prop:mdf-tilde-tv}, we have that
+$\eps' = \eps + \widetilde{\TV}(\tilde{p},\tilde{p}_n)$
+and our framework (\cref{fig:robust-statistics-framework}) only assumes
+$D(\tilde{p}, p^*) = \widetilde{\TV}(\tilde{p}, p^*) \leq \eps$.
+The requirement of being $(\rho, \eps')$-resilient is stronger than that of
+$(\rho, \eps)$-resilience, so to ensure broad applicability we would like
+desidirata 2 formalized as follows:
+\begin{proposition}\label{eq:9-12-desidirata-2}
+    $\widetilde{\TV}(\tilde{p}, \tilde{p}_n)$ is small, specifically:
     \begin{align}
-        p,q \in \cG \subset \cG_{\TV}(\rho, \eps)
-        \text{ and } \widetilde{\TV}(p,q) \leq \eps
-        \implies \|\mu(p) - \mu(q)\|_2 \leq \sigma = 2 \rho\label{eq:9-12-desidirata-1}
+        \widetilde{\TV}(\tilde{p}, \tilde{p}_n) = O\left(\sqrt{d/n}\right)
     \end{align}
-    \item $\widetilde{\TV}(\tilde{p}, \tilde{p}_n)$ is small, specifically:
-    \begin{align}
-        \widetilde{\TV}(\tilde{p}, \tilde{p}_n) = O\left(\sqrt{d/n}\right)\label{eq:9-12-desidirata-2}
-    \end{align}
-\end{enumerate}
+\end{proposition}
+
 
 \begin{proof}[Proof of \cref{eq:9-12-desidirata-1}]
     Previously we used \nameref{lem:midpoint} to find an $\eps$-deletion
@@ -315,8 +332,10 @@ We need to show our two desidirata:
 
 \textbf{Consequences}:
 \begin{itemize}
-    \item For $(\rho, \eps + O(\sqrt{d/n}))$-resilient distributions, we can estimate mean with error $2 \rho$
-    \item For bounded covariance, \cref{corr:mod-cont-cov} gave us
+    \item Combining \cref{eq:9-12-desidirata-1} and \cref{eq:9-12-desidirata-2}, we have
+        that for
+        $(\rho, \eps' = \eps + \widetilde{\TV}_{\cH_{lin}}(\tilde{p}, \tilde{p}_n) = \eps + O(\sqrt{d/n}))$-resilient distributions, we can estimate mean with error $2 \rho$
+    \item For bounded covariance, \cref{eg:bdd-cov-resilient} gave us
         $\rho(\eps) = O(\sqrt{\eps})$ hence
     \begin{align}
         L(p^*, \tilde{\theta}_{\widetilde{\TV}}(\tilde{p}_n))
@@ -324,12 +343,12 @@ We need to show our two desidirata:
     \end{align}
     The lower bound $\sqrt{\eps}$ is what we get in the infinite sample $n \to \infty$
     limit, and $\sqrt{d/n}$ when $\eps \to 0$, so we would like $\sqrt{\eps} + \sqrt{d/n}$.
-    The slack in the bound comes from $n \gg d / \eps^2$, whereas we would need $n \gg \frac{d}{\eps}$ but this analysis doesnt give it to us.
+    The slack in the bound comes from requiring $n \gg d / \eps^2$ for it to hold with high probability,
+    whereas we would need $n \gg \frac{d}{\eps}$ if we wanted to show the tighter bound
 
     \item For sub-Gaussians, $\rho(\eps) = O(\eps \sqrt{\log(1/\eps)})$.
-    When $n \gg \frac{d}{\eps^2}$ we get $O(\eps \sqrt{\log (1/\eps)}$.
+        When $n \gg \frac{d}{\eps^2}$ we get $O(\eps \sqrt{\log (1/\eps)})$.
 \end{itemize}
 In general, this analysis holds for $n \gg d / \eps^2$: whenever this holds, we can
-do as well as if we had infinite data. The analysis is tight in $d$ but loose in $\eps$.
-
-\todo{$\widetilde{\TV}$ similar to Tukey median, may be useful for challenge problem}
+do as well ($O(\sqrt{\eps + o(\eps)}) = O(\sqrt{\eps})$) as if we had infinite data.
+The analysis is tight in $d$ but loose in $\eps$.
