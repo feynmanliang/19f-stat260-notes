@@ -1,0 +1,287 @@
+\section{9/26/2019}
+
+\subsection{Recap}%
+
+\begin{itemize}
+  \item Efficient algorithms for $\cG_{cov}(\sigma)$
+  \item Project onto top eigenvectors
+    \begin{itemize}
+      \item Revealed bad points
+    \end{itemize}
+  \item Invariant 1: remove more bad than good points
+  \item \textbf{TODO} Invariant 2: $\TV(q(c), p^*) \leq \frac{\eps}{1-\eps}$
+  \item Today:
+    \begin{itemize}
+      \item Other norms
+        \begin{itemize}
+          \item Dual norm
+          \item Approximate eigenvector via SDP
+          \item Grothendieck's inequality
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+Recall our algorithm, which $\tilde{p}$ is an empirical
+distribution over $n$ points $\{x_1, \ldots, x_n\}$ and
+$p^*$ an empirical distribution over a subset $\{x_i\}_{i \in S}$
+from $\tilde{p}$ with $\lvert S \rvert \geq (1 - \eps) n$.
+Our algorithm represented the distribution $q$ as
+\begin{align}
+  q(c) : \text{ place }\frac{c_i}{\sum_{i=1}^n c_i}\text{ on point }x_i
+\end{align}
+
+\begin{proposition}
+  If $\sum_{i \in S} (1 - c_i) \leq \sum_{i \not\in S} (1 - c_i)$,
+  then $\TV(q(c), p^*) \leq \frac{\eps}{1-\eps}$.
+\end{proposition}
+
+\begin{proof}
+  Define $\beta = \frac{1}{n} \sum_{i=1}^n (1 - c_i)$, so
+  $\sum_{i=1}^n c_i = (1 - \beta) n$. Proceed by case analysis
+  on $\beta \leq \eps$.
+
+  When $\beta \leq \eps$,
+  \begin{align}
+    \TV(p, q)
+    &= \frac{1}{2} \int \lvert p(x) - q(x) \rvert dx
+    = \int \max(p(x) - q(x), 0) dx \\
+    \TV(p^*, q(c))
+    &= \sum_{i \in S} \max\left(
+      \underbrace{\frac{c_i}{(1 - \beta)n} - \frac{1}{(1-\eps)n}}_{
+        \frac{1}{1 - \beta} \leq \frac{1}{1 - \eps} \implies \cdot \leq 0
+      }, 0
+    \right) + \sum_{i \not\in S} \frac{\overbrace{c_i}^{\leq 1}}{(1 - \beta)n} \\
+    &\leq \frac{\eps}{1 - \eps}
+  \end{align}
+
+  Now for $\beta \geq \eps$
+  \begin{align}
+    \TV(p^*, q(c))
+    &= \sum_{i \in S} \max\left(
+      \frac{1}{(1 - \eps)n} - \frac{c_i}{(1 - \beta)n}
+      , 0
+    \right) + 0 \\
+    &= \frac{1}{(1-\eps)(1-\beta)n} \sum_{i \in S} \max\left(
+      (1-\beta)(1-c_i)
+      + \underbrace{(\eps - \beta)}_{\leq 0} c_i
+      , 0
+    \right) \\
+    &\leq \frac{\cancel{(1-\beta)}}{(1-\eps)\cancel{(1-\beta)} n} \sum_{i \in S} (1 - c_i) \\
+    &= \frac{\eps}{1-\eps}
+  \end{align}
+\end{proof}
+
+\subsection{Other norms}%
+
+\begin{definition}
+  Given a norm $\| \cdot \|$, the \emph{dual norm} is
+  \begin{align}
+    \|u\|_* = \sup_{\|v\| \leq 1} \braket{u,v}
+  \end{align}
+\end{definition}
+
+\begin{example}
+  $\|\cdot\|_2$ is self-dual: $\|\cdot\|_* = \|\cdot\|_2$.
+
+  $\|\cdot\|_\infty$ has dual norm $\|\cdot\|_1$.
+
+  $\|\cdot\|_1$ has dual norm $\|\cdot\|_\infty$.
+\end{example}
+
+\begin{theorem}
+  $\|\cdot\|_{**} = \|\cdot\|$ if finite dimensional.
+
+  $\|v\|_{(k)} = \text{sum of $k$ largest coordinates (in absolute value)}$.
+
+  $\|u\|_{(k)*} = \max(\|u\|_\infty, \|u\|1 / k)$.
+  To explain this last one, notice that
+  \begin{align}
+    \|u\|_{(k)}^* \leq 1 &\iff \text{convex hull of $\{-1,0,+1\}$ and $k$ non-zero} \\
+    \sup_{\|u\|_{(k)*} \leq 1} \braket{u,v} &= \|v\|_{(k)}
+  \end{align}
+\end{theorem}
+
+We can now generalize our definitions to other norms:
+\begin{align}
+  \cG_{cov}(\sigma) &= \{ p : \sup_{\|v\|_2 \leq 1} v^\top \Cov_p[X] v \leq \sigma^2 \} \\
+  \cG_{cov}(\sigma, \|\cdot\|) &= \{ p : \sup_{\|v\|_* \leq 1} v^\top \Cov_p[X] v \leq \sigma^2 \} \\
+\end{align}
+Since we were previously using resilience of $\cG_{cov}(\sigma)$ to get
+modulus bounds, we would like to show resilience as well:
+\begin{proposition}
+  If $p \in \cG_{cov}(\sigma, \|\cdot\|)$, then
+  $p$ is $(\cO(\sigma \sqrt{\eps}), \eps)$-resilient in $\|\cdot\|$.
+
+  If $r \leq \frac{p}{1-\eps}$, then
+  $\|\mu(r) - \mu(p)\| \leq \sigma \sqrt{\frac{2 \eps}{1-\eps}}$
+\end{proposition}
+
+\begin{proof}
+  \begin{align}
+    \|\mu(r) - \mu(p) \|
+    &= \sup_{\|v\|_* \leq 1} \braket{\mu(r) - \mu(p), v}
+  \end{align}
+  For any $\|v^*\|_* \leq 1$, by $p \in \cG_{cov}(\sigma, \|\cdot\|)$
+  we have the bound
+  \begin{align}
+    \Var_p[\braket{X, v^*}] &= (v^*)^\top \Cov_p[X] (v^*) \leq \sigma^2
+  \end{align}
+  Applying the previous argument used to prove resilience of $\cG_{cov}(\sigma)$
+  (\cref{corr:mod-cont-cov}) yields the reuslt.
+\end{proof}
+
+How can we generalize the algorithm?
+
+\begin{itemize}
+  \item Use thes ame algo
+  \item Replace max eigenvector with $\sup_{\|v\|_* \leq 1} v^\top \Sigma v$.
+    NP-hard generally, so we want to approximate.
+\end{itemize}
+
+\begin{example}[Distribution learning using the 1-norm]
+  Let $\pi$ be a distribution on $[m]$.
+
+  \textbf{Goal}: Recover $\hat\pi$ such that
+  $\TV(\hat\pi, \pi) = \frac{1}{2} \|\hat\pi - \pi\|_1$.
+
+
+  \emph{Trusted batches}: $p^* = \pi^k$ $k$-tuples of independent.
+
+  \textbf{Goal}: Given $\tilde{p}$ such that $\TV(\tilde{p}, p^*) \leq \eps$,
+  recover $\pi$ in $\TV$
+
+  \begin{proposition}
+    Can recover $\hat\pi$ such that
+    $\TV(\hat{\pi}, \pi) \leq \sqrt{\frac{\eps}{k}}$.
+
+  \end{proposition}
+
+  \begin{remark}
+    Compare to the trivial bound of $\leq \eps$, we see that
+    this is better whenever $k \geq \frac{1}{\eps}$.
+  \end{remark}
+
+  \begin{proof}
+    Represent samples $X \sim p^*$ as normalized count vector/histograms $Z$
+    where
+    \begin{align}
+      Z_j = \frac{1}{k} \sum_{i=1}^k \delta_{X_i = j}
+    \end{align}
+    so in particular $\ex_{p^*}[Z] = \pi$. From here forwards we will
+    use $X$ to denote the normalized histogram.
+    \begin{lemma}
+      \begin{align}
+        \sup_{\|v\|_\infty \leq 1} v^\top \Cov_{p^*}[X] v \leq \frac{1}{k}
+      \end{align}
+    \end{lemma}
+    \begin{proof}
+      \begin{align}
+        v^\top \Cov_{p^*}[X] v
+        &= \frac{1}{k} v^\top \Cov_{\pi}[X] v
+        = \frac{1}{k} \Var_\pi[\braket{X, v}] \\
+        &\leq \frac{1}{k} \ex_\pi[\braket{X, v}^2]
+        = \frac{1}{k} \sum_{j=1}^m \pi_j \underbrace{v_j^2}_{\leq 1} \\
+        &\leq \frac{1}{k} \sum_j \pi_j \\
+        &\leq \frac{1}{k}
+      \end{align}
+    \end{proof}
+  \end{proof}
+\end{example}
+
+\begin{definition}[$\kappa$-approximate oracle]
+  A $\kappa$-approximate oracle $A$
+  is a matrix-valued function $M = A(\Sigma)$ such that
+  \begin{enumerate}
+    \item $\braket{M, \Sigma} \geq \sup_{\|v\|_* \leq 1} v^\top \Sigma v$:
+      it's correctly large on bad points (overall)
+    \item For any $\Sigma'$, $\braket{M, \Sigma'} \leq \kappa \sup_{\|v\|_* \leq 1} v^\top \Sigma' v$:
+      it doesn't accidentally think the good points are bad
+    \item $M \succeq 0$
+  \end{enumerate}
+\end{definition}
+
+Modify the filtering step of our algorithm:
+\begin{align}
+  q(c) = \frac{c_i}{\sum_i c_i}
+\end{align}
+a distribution on $x_i$.
+
+\begin{itemize}
+  \item Initialize $c_i = 1$ for all $i$
+  \item Compute \begin{align}
+      \hat\mu_c &= \ex_{q(c)} X \\
+      \hat\Sigma_c &= \Cov_{q(c)} X \\
+      M &= A(\Sigma)
+  \end{align}
+  \item If $\braket{M, \hat\Sigma_c} \leq 20 \kappa \sigma^2$, output $q(c)$
+  \item Else
+    \begin{align}
+      \tau_i &= (x_i - \hat\mu_c)^\top M (x_i - \hat\mu_c) \\
+      c_i &\leftarrow c_i(1 - \tau_i / \tau_{\max})
+    \end{align}
+\end{itemize}
+
+\begin{proposition}
+  If $p^* \in \cG_{cov}(\sigma, \|\cdot\|)$, then
+  \begin{align}
+    \|\mu(p^*) - \mu(q(c))\| \leq \cO(\sigma \sqrt{\kappa \eps})
+  \end{align}
+\end{proposition}
+
+How do we get to a $\kappa$-approximate oracle? One way is to consider
+relaxation of eigenvalue problem:
+\begin{align}
+  \max v^\top \Sigma v \qquad &\text{ st } \|v\|_\infty \leq 1 \\
+  \max \braket{v v^\top, \Sigma} \qquad &\text{ st } \|v\|_\infty \leq 1 \\
+  \max \braket{M, \Sigma} \qquad &\text{ st } M_{jj} = 1~\forall j, M \succeq 0, \rank(M) = 1
+\end{align}
+The rank constraint is the only problem, so we will just relax it
+to get the SDP (which is solvable in polynomial time)
+\begin{align}
+  \max &\braket{M, \Sigma} \label{eq:kappa-approx-oracle-sdp}\\
+  \text{st }& M \succeq 0 \nonumber\\
+  &\diag(M) = 1 \nonumber
+\end{align}
+
+\begin{theorem}[Grothendieck]
+  \begin{align}
+    \text{Optimal value of \cref{eq:kappa-approx-oracle-sdp}}
+    \leq \frac{\pi}{2} \max_{\|v\|_\infty \leq 1} v^\top \Sigma v
+  \end{align}
+
+  Hence, the SDP \cref{eq:kappa-approx-oracle-sdp} is a
+  $\frac{\pi}{2}$-approximate oracle (assuming $\Sigma \preceq 0$).
+\end{theorem}
+
+\begin{proof}
+  Define
+  \begin{align}
+    \arcsin[X]_{ij} &= \arcsin[X_{ij}]
+  \end{align}
+  We will show two identities:
+  \begin{enumerate}
+    \item $\sup_{\|v\|_\infty \leq 1} v^\top \Sigma v = \frac{2}{\pi}
+      \sup_{\substack{M \succeq 0 \\ \diag(M) = 1}} \braket{\arcsin[M], \Sigma}$
+    \item $\arcsin[X] \succeq X$
+  \end{enumerate}
+
+  For the first, $M \succeq 0$ means we can write $M = U U^\top$
+  where $M_{ij} = \braket{u_i, u_j}$. Since
+  $1 = M_{ii} = \|u_i\|^2$, we have that $u_i$ are unit vectors.
+  We will do two things:
+  \begin{enumerate}
+    \item $M \implies$ distribution over $v \in \{\pm 1\}^d$
+      such that $\ex v v^\top = \frac{2}{\pi} \arcsin[M]$ (think
+      randomized rounding)
+    \item $\frac{2}{\pi} \arcsin(v v^\top) = v v^\top$ (just a calculation)
+  \end{enumerate}
+  For the first, let $g \sim N(0,I)$ and consider
+  \begin{align}
+    v_i &= \sgn(\braket{u_i, g})
+  \end{align}
+  Notice
+  \begin{align}
+    \ex_g[v_i v_j] = \frac{2}{\pi} \arcsin \braket{u_i, u_j}
+  \end{align}
+  Figure 9.26.1
+\end{proof}

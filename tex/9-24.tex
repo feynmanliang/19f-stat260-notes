@@ -1,0 +1,209 @@
+\section{9/24/2019}
+
+\begin{itemize}
+  \item PSet 2 posted by Friday, due Tuesday 10/8
+\end{itemize}
+
+\subsection{Recap}%
+
+Wanted to bound truncated moments $\tilde{\psi}_k$
+\begin{itemize}
+  \item Ledoux-Talagrand for bounding deviation of $\tilde{\psi}_k$
+  \item Khintchin and Rosenthal to bound $\ex[\|\hat\mu_n - \mu\|_2^k]$
+\end{itemize}
+
+Today
+\begin{itemize}
+  \item Finish up proof
+  \item Efficient algorithms for $\cG_{cov}(\sigma)$
+\end{itemize}
+
+\textbf{Goal}: Bound
+\begin{align}
+  \sup_{\|v\| \leq 1} \frac{1}{n}
+  \sum_{i=1}^n \tilde{\psi}_k\left(\left\lvert \frac{\braket{x_i - \mu, v}}{\sigma}\right\rvert\right),
+  \quad\text{ where }
+  \tilde{\psi}_k(x) = \begin{cases}
+    x^k, &\text{ if }x \leq x_0\\
+    \text{linear}, &\text{ ow }
+  \end{cases}
+  \text{ is $L$-Lipschitz.}
+\end{align}
+
+For convenience, take $\mu = 0$ and $\sigma = 1$.
+
+Consider symmetrizing:
+\begin{align}
+  \underbrace{\sup_{\|v\|_2 \leq 1} \frac{1}{n} \sum_{i=1}^n \tilde{\psi}_k(\lvert \braket{x_i, v}\rvert) - \ex_{X'}[\tilde{\psi}_k(\lvert \braket{x_i', v}\rvert)]}_{Z(X)} + 1
+\end{align}
+We're going to bound $Z(X)$ using Chebyshev's inequality.
+
+Let $g$ be convex increasing.
+\begin{align}
+  \ex_X[g(Z(X))]
+  &= \ex_X g\left(\sup_{\|v\|_2 \leq 1} \frac{1}{n} \sum_{i=1}^n \tilde\psi_k(\braket{x_i, v}) - \underbrace{\ex_{X'} \tilde\psi_k(\braket{x_i', v})}_{\sup \ex \leq \ex \sup} \right) \\
+  &\leq \ex_X g\left(\ex_{X'} \sup_{\|v\|_2 \leq 1} \frac{1}{n} \sum_{i=1}^n \tilde\psi_k(\braket{x_i, v}) - \tilde\psi_k(\braket{x_i', v}) \right) \\
+  &\leq \ex_{X,X'} g\left(\sup_{\|v\|_2 \leq 1} \frac{1}{n} \sum_{i=1}^n \tilde\psi_k(\braket{x_i, v}) - \tilde\psi_k(\braket{x_i', v}) \right) \\
+  &= \ex_{X,X',\eps} g\left(\sup_{\|v\|_2 \leq 1} \frac{1}{n} \sum_{i=1}^n \eps(\tilde\psi_k(\braket{x_i, v}) - \tilde\psi_k(\braket{x_i', v})) \right) \\
+  &\leq \ex_{X,X',\eps} g\left(
+    \underbrace{\sup_{\|v\|_2 \leq 1} \frac{1}{n}\sum_{i=1}^n
+    \eps \tilde\psi_k(\braket{x_i, v})}_A
+    + \underbrace{\sup_{\|v\|_2 \leq 1} \frac{1}{n}\sum_{i=1}^n
+    \eps\tilde\psi_k(\braket{x_i', v'})}_B
+\right)
+\end{align}
+Applying Jensen's on $g$ gigves $\ex[\cdot] \leq \ex[g(2A)]$ so
+\begin{align}
+  \ex_X[g(Z(X))]
+  &\leq \ex_{X,\eps} g\left(\sup_{\|v\|_2 \leq 1} \frac{2}{n} \sum_{i=1}^n \eps\tilde\psi_k(\braket{x_i, v}) \right)
+\end{align}
+Since $\tilde\psi_k$ is $L$-Lipschitz, applying Ledoux-Talagrand gives
+\begin{align}
+  \ex_X[g(Z(X))]
+  &\leq \ex_{X,\eps} g\left(\sup_{\|v\|_2 \leq 1} \frac{2 L}{n} \sum_{i=1}^n \eps_i\braket{x_i, v} \right) \\
+  &= \ex_{X,\eps} g\left(\sup_{\|v\|_2 \leq 1} \braket{x_i, \frac{2 L}{n} \sum_{i=1}^n \eps_i v} \right) \\
+  &= \ex_{X,\eps} g\left(\left\|\frac{2 L}{n} \sum_{i=1}^n \eps_i v\right\|_2 \right)
+\end{align}
+So far this has been for generic convex increasing $g$.
+For $k$th moments, $g(x) = x^k$ and
+\begin{align}
+  \ex_X[g(Z(X))]
+  &\leq \left(\frac{2 L}{n}\right)^k
+  \ex_{X,\eps} \left[\left\|
+    \sum_{i=1}^n \eps_i X_i\|_2^k
+  \right\|\right]
+\end{align}
+The remainder is handled using Khintchine and Rosenthal's inequality.
+
+\subsection{Efficient algorithms via eigenvector projection}%
+
+Let the true distribution $p^* \in \cG_{cov}(\sigma)$, so $\|\Cov_{p^*}[X]\| \leq \sigma^2$.
+Let the corrupted distribution $\tilde{p}$ be such that $\TV(p^*, \tilde{p}) \leq \eps$.
+
+\textbf{Goal}: Estimate $\mu = \ex_{p^*}[X]$ with error
+$\cO(\sigma \sqrt{\eps})$ in $\ell_2$-norm.
+
+\textbf{Will show}: There exists an efficient algorithm that outputs $q$ such that:
+\begin{itemize}
+  \item $\TV(q, p^*) = \cO(\eps)$, which yields a modulus of continuity bound
+  \item $\|\Cov_q(X)\| = \cO(\sigma^2)$, which yields an error $\cO(\cO(\sigma) \sqrt{\cO(\eps)}) = \cO(\sigma\sqrt{\eps})$.
+\end{itemize}
+
+\subsubsection{Representation}%
+
+Let $\tilde{p}$ be the empirical distribution over $n$ points
+$\{x_i\}_{i=1}^n$.
+
+Let $p^*$ be the empirical distribution over a subset $\{X_i\}_{i \in S}$ of
+points from $\tilde{p}$ with $\lvert S \rvert \geq (1 - \eps)n$.
+
+\begin{itemize}
+  \item Empirical distribution, so we can store on computer
+  \item Subset condition, which is equivalent to
+    $p^*$ being an $\eps$-deletion of $\tilde{p}$,
+    hence $\TV(p^*, \tilde{p}) \leq \eps$
+  \item Deleting points can't make $\Cov[X]$ large: for
+    any $q$ an $\eps$-deletion of $p$
+    \begin{align}
+      \Cov_q[X] \preceq \frac{1}{1-\eps} \Cov_p[X]
+    \end{align}
+\end{itemize}
+
+Figure 9.24.1: We had bad examples previously by putting all
+the points in a single direction.
+
+\textbf{Algorithm}:
+\begin{itemize}
+  \item Initialize $c_i = 1$ for all $i$
+  \item Let $q(c)$ be the weight $\frac{c_i}{\sum_j c_j}$ on point $x_i$
+  \item Repeat:
+    \begin{itemize}
+      \item Compute $\hat\mu_ = \ex_{q(c)}[X]$
+      \item Compute $\hat\Sigma_c = \Cov_{q(c)}[X]$
+      \item Let $\hat\sigma_c^2
+        = \sup_{\|v\| \leq 1} v^\top \hat\Sigma_c v
+        = \sup_{\|v\|_2 \leq 1} \frac{
+          \sum_{i=1}^n c_i \braket{x_i - \hat\mu_c, v}^2
+        }{\sum_i c_i}$,
+      \item If $\hat\sigma_c^2 \leq 20 \sigma^2$, output $q(c)$
+      \item Else, $c_i \leftarrow c_i \left(1 - \frac{\tau_i}{\tau_{\max}}\right)$, $\tau_i = \braket{x_i - \hat\mu_c, v^*}^2$, $\tau_{\max} = \max_i \tau_i$.
+    \end{itemize}
+\end{itemize}
+
+The algorithm is based on the intuition that
+the maximizing $v^*$ for $v^\top \Sigma v$ is precisely
+the top eigenvector for $\Sigma$.
+
+\textbf{Intuition}: If $\mu \approx \hat\mu$, then
+$\tau_i \approx \braket{x_i - \mu, v^*}^2$ is the projection
+onto $v^*$.
+
+Figure 9.24.2
+
+However this intuition is flawed in two ways:
+\begin{itemize}
+  \item Assuming $\mu \approx \hat\mu_c$, which is the goal to begin with
+  \item Only holds in expectation (c.f. downweighting)
+  \item Not many bad points
+\end{itemize}
+
+\begin{proposition}
+  Suppose $\|\Cov_{p^*}[X]\|\leq \sigma^2$.
+  Then Algorithm outputs $q$ such that
+  \begin{itemize}
+    \item $\TV(p^*, q) \leq \frac{\eps}{1-\eps}$
+    \item $\|\Cov_q[X]\| \leq 20 \sigma^2$
+  \end{itemize}
+  Hence by modulus bound, $\|\mu(q) - \mu\|_2 = O(\sigma\sqrt{\eps})$
+\end{proposition}
+
+\begin{proof}[Sketch of proof]
+  Invariant 1: $\TV(p^*, q(c)) \leq \frac{\eps}{1-\eps}$ always.
+
+  Invariant 2: $\sum_{i \in S} (1 - c_i) \leq \sum_{i \not\in S}(1 - c_i)$
+
+  The second implies the first.
+
+  Let $c_i' = c_i \left( 1 - \frac{\tau_i}{\tau_{\max}} \right)$.
+  \begin{align}
+    \sum_{i \in S} (1 - c_i') = \sum_{i \in S} (1 - c_i) +
+    \underbrace{\sum_{i \in S} (c_i - c_i')}_{
+      =\frac{1}{\tau_\max} \sum_i c_i \tau_i
+    }
+  \end{align}
+  To show Invariant 2, want
+  \begin{align}
+    \sum_{i \in S} c_i \tau_i &\leq \sum_{i \not\in S} c_i \tau_i
+  \end{align}
+  Note
+  \begin{align}
+    \sum_{i \in S} c_i \tau_i
+    &= \sum_{i \in S} c_i \braket{x_i - \hat\mu_c, v^*}^2
+    \leq \underbrace{\left(\frac{1}{\lvert S \rvert} \sum_{i \in S} \braket{x_i - \hat\mu_c, v^*}^2\right)}_{\text{looks like covariance}}
+  \cdot (1 - \eps)n
+  \end{align}
+  Expanding this term
+  \begin{align}
+    \frac{1}{\lvert S \rvert} \sum_{i \in S} \braket{x_i - \hat\mu_c, v^*}^2
+    &= (v^*)^\top \ex_{p^*}[(X - \hat\mu_c) (X - \hat\mu_c)^\top] v^* \\
+    &= (v^*)^\top \left(
+      \Cov_{p^*}[X] + (\mu - \hat\mu_c)(\mu - \hat\mu_C)^\top
+    \right) v^* \\
+    &= \underbrace{(v^*)^\top \Cov_{p^*}[X] v^*}_{\leq \sigma^2}
+    + \underbrace{\braket{v^*, \mu - \hat\mu_c}^2}_{\leq \|\mu - \hat\mu_c\|_2^2
+    \leq \cO(\hat\sigma_c^2 \underbrace{\TV(p^*, q(c))}_{\leq \eps/(1-\eps)}}
+  \end{align}
+  Therefore
+  \begin{align}
+    \sum_{i \in S} c_i \tau_i &\leq (1 - \eps) n (\sigma^2 + 
+    \underbrace{\cO(\hat\sigma_c^2 \eps)}_{\text{small as }\eps \to 0})
+  \end{align}
+  \begin{align}
+    \sum_{i=1}^n c_i \tau_i
+    &= \hat\sigma_c^2 \underbrace{\left(\sum_{i=1}^n c_i\right)}_{\geq (1 - 2 \eps) n}
+  \end{align}
+
+  \textbf{Want}: $\sum_{i=1}^n c_i \tau_i \geq 2 \sum_{i \in S} \underbrace{c_i \tau_i}_{\approx \sigma^2} \approx 20 \sigma^2$ where 20 works if $\eps \leq 1/12$.
+\end{proof}
+
+\textbf{Generic proof outline for efficient algorithms}: $\tau_i$ measures how bad points are, downweight on the $\tau_i$.
