@@ -1,0 +1,115 @@
+\section{10/1/2019}
+
+\subsection{Semidefinite Programing and Sum of Squares}
+
+\begin{theorem}[Grothendieck's Inequality]
+    \begin{align}
+        \frac{\pi}{2} \max_{\|v\|_\infty \leq 1} v^\top \Sigma v
+        \geq \max_{\substack{M \succeq 0 \\ \diag M = 1}} \braket{M, \Sigma}
+    \end{align}
+\end{theorem}
+
+\begin{proof}
+    We first consider (1) and Will show:
+    \begin{enumerate}
+        \item $\max_{\|v\|_\infty \leq 1} v^\top \Sigma v = \frac{2}{\pi} \max_{\substack{M \succeq 0 \\ \diag M = 1}} \braket{\arcsin M, \Sigma}$
+        \item $\arcsin X \succeq X$
+    \end{enumerate}
+    after which composing the two gives our desired result.
+
+    Easy: LHS $\leq$ RHS. LHS max attained for $v \in \{\pm 1\}^d$, set
+    $M = v v^\top$ in RHS.
+    Since $\arcsin(1) = \frac{\pi}{2} \cdot 1$ and
+    $\arcsin(-1)=\frac{\pi}{2} \cdot (-1)$,
+    \begin{align}
+        \frac{2}{\pi} \braket{\underbrace{v v^\top}_{= \frac{\pi}{2} v v^\top}, \Sigma}
+        = \braket{v v^\top, \Sigma} = v^\top \Sigma v
+    \end{align}
+
+    Harder: RHS $\leq$ LHS. Will do randomized rounding.
+    Given $M$, construct $\rho(v)$ such that
+    \begin{align}
+        \ex_{v \sim \rho} [v^\top \Sigma v] &= \frac{2}{\pi} \braket{\arcsin(M), \Sigma}
+        \iff \ex_{v \sim \rho} [v v^\top] &= \frac{2}{\pi} \braket{\arcsin(M), \Sigma}
+    \end{align}
+    $M \succeq 0 \implies M = U U^\top \implies M_{ij} = \braket{u_i, u_j}$.
+    $\diag M = 1 \implies u_i$ are unit vectors.
+
+    The distribution will be $g \sim N(0, I)$ and $v_i = \sgn(g \cdot u_i)$.
+
+    Figure 10.1.1:
+
+    \begin{align}
+        \ex[v_i v_j]
+        &= \ex[\sgn[\braket{g, u_i}] \sgn[\braket{g, u_j}]] \\
+        &= 2 \Pr[\sgn[\braket{g, u_i}]] \sgn[\braket{g, u_j}] - 1
+    \end{align}
+    This is really how likely for both to be on the same side of a hyperplane.
+
+    Figure 10.1.2: the projection of $g$ onto $u_i$ and $u_j$ have opposite
+    sign only when $u_i$ and $u_j$ are split by the hyperplane orthogonal to $g$.
+    \begin{align}
+        \theta &= \arccos \braket{u_i, u_j} \\
+        1 - \Pr[\text{opposite signs}]
+        &= 1 - \frac{\theta}{\pi} \\
+        &= \frac{\pi - \arccos \braket{u_i, u_j}}{\pi} \\
+        &\geq \frac{\pi - 2 \arccos \braket{u_i, u_j}}{\pi} \\
+        &\vdots \text{ algebra}\\
+        &= \frac{2}{\pi} \arcsin \braket{u_i, u_j} \\
+        &= \frac{2}{\pi} \arcsin(M_{ij})
+    \end{align}
+
+    Now we consider (2).
+    \begin{align}
+        \arcsin X &\succeq X \\
+        \arcsin(Z) &= \underbrace{Z + \frac{Z^3}{6} + \cdots}_{\text{positive coeffs}} \\
+        \arcsin(X) &= X + \frac{X^{\odot 3}}{6} + \cdots \succeq X
+    \end{align}
+    where $X^{\otimes k}_ij = (X_{ij})^k$ is elementwise power.
+
+    \begin{lemma}
+        If $X \succeq 0$, then $X^{\odot k} \succeq 0$ for $k \in \NN$.
+    \end{lemma}
+    \begin{proof}
+        Recall the Hadamard (i.e. tensor) product:
+        \begin{align}
+            A, B \succeq 0, &\qquad A \in \RR^{n \times n}, B \in \RR{n' \times n'} \\
+            A \otimes B \in &\RR^{(n \cdot n') \times (n \cdot n')} \\
+            (A \otimes B)_{ii', jj'} &= A_{ij} B_{i'j'} \\
+            u \in \RR^n &\qquad v \in \RR^{n'} \\
+            u \otimes v &\in \RR^{n \cdot n'} \\
+            (u \otimes v)_{i i'} &= u_i v_{i'}
+        \end{align}
+        Note in particular $(A \otimes B)(u \otimes v) = (A u) \otimes (B v)$
+        so the eigenvalues of $A \otimes = \lambda_i \lambda_j'$ for
+        $\text{eig}(A) = \{\lambda_i\}_i$ and $\text{eig}(B) = \{\lambda'_j\}_j$.
+        Hence, if $A, B \succeq 0$ then $A \otimes B \succeq 0$.
+        But since $A^{\odot k}_{ij} = (A^{\otimes k})_{ij,ij}$ is a principal
+        submatrix of a PSD matrix, $A^{\odot k}$ is PSD.
+    \end{proof}
+\end{proof}
+
+\subsection{Semidefinite programing}%
+
+\begin{align}
+    \max &\braket{A, X} &&\text{objective} \\
+    \text{s.t.}`& X \succeq 0 && \text{PSD constraint} \\
+    % &\left\.\begin{array}{cc}
+    %     \braket{B_1, X} &\leq c_1 \\
+    %     &\vdots \\
+    %     \braket{B_m, X} &\leq c_m
+    % \end{array}\right\} &&\text{linear equality constraints} \\
+\end{align}
+where $\braket{X, Y} &= \sum_{i,j} X_ij Y_{ij}$,
+$X, A, B \in \RR^{n \times n}$,
+and $c_j \in \RR$.
+
+SDP preserving operations:
+\begin{itemize}
+    \item $\min$ instead of $\max$ (i.e. $A \mapsto -A$)
+    \item equality constraints
+    \item $X \succeq 0 \implies \cL(X) \succeq 0$
+        (e.g. $X_1$, $X_2 \succeq 0$, $X_1 + 2 X_2 \succeq 0$)
+    \item $\cL_1(X) \succeq 0$, $\ldots, $\cL_k(X) \succeq 0$,
+        then $\diag(L_i(X)) \succeq 0$.
+\end{itemize}
