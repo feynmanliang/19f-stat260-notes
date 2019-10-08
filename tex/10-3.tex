@@ -1,0 +1,281 @@
+\section{10/3/2019}
+
+\textbf{Goal}: Bound $2k$th moments $\sup_{\|v\|_2 \leq 1} \ex[\braket{X - \mu, v}^2k] = \sup_{\|v\| \leq 1} \braket{M_{2k}, v^{\otimes 2k}}$ where $M_{2k} \in \RR^{d^{2k}}$ is the $2k$th moment tensor.
+
+\textbf{Idea}: Polynomial program is NP hard. Approximate via SoS program
+\begin{align}
+  \min~& \lambda \\
+  \text{st}~& \lambda \|v\|_2^{2k} - \braket{M_{2k}, v^{\otimes 2k}} \geq_{SoS} 0
+\end{align}
+
+\textbf{Today}: Analyze the SoS program. Show that $\lambda$ is small.
+\begin{itemize}
+  \item Poincar\'e inequality
+  \item SoS proofs
+\end{itemize}
+
+\subsection{Sum-of-squares proofs}%
+
+\begin{definition}
+  The inequality $p(v) \leq q(v)$ has a \emph{sum-of-squares proof}
+  (i.e. is \emph{sum-of-squares certifiable}) if $q(v) - p(v) \geq_{SoS} 0$.
+  In this case, we write $p \leq_{SoS} q$.
+\end{definition}
+
+Switching from SDPs to SoS is motivated by the following nice composition
+properties for sum-of-squares proofs.
+
+\begin{proposition}
+  $\leq_{SoS}$ is similar to $\leq$:
+  \begin{enumerate}
+    \item $p_1 \leq_{SoS} p_2, p_2 \leq_{SoS} p_3 \implies p_1 \leq_{SoS} p_3$
+    \item $p_1 \leq_{SoS} q_1, p_2 \leq_{SoS} q_2 \implies p_1 + p_2 \leq_{SoS} q_1 + q_2$
+    \item $p_1, p_2 \geq_{SoS} 0 \implies p_1, p_2 \geq_{SoS} 0$
+    \item $p_1 \leq_{SoS} p_2, q_1 \leq_{SoS} q_2, p_1 \geq_{SoS} 0, q_2 \geq_{SoS} 0 \implies p_1 q_1 \leq_{SoS} p_2 q_2$
+  \end{enumerate}
+\end{proposition}
+
+\begin{proof}[Proof of (3)]
+  \begin{align}
+    p_1(v) p_2(v)
+    &= \left( \sum_i p_{1i}(v)^2\right) \left( \sum_j p_{2j}(v)^2 \right)
+    = \sum_{ij} (p_{1i}(v) p_{2j}(v))^2
+  \end{align}
+\end{proof}
+
+\begin{proof}[Proof of (4)]
+  \begin{align}
+    p_2 q_2 - p_1 q_1
+    &= p_2 \underbrace{(q_2 - q_1)}_{\geq_{SoS} 0}
+    + q_1 \underbrace{(p_2 - p_1)}_{\geq_{SoS} 0}
+    \geq_{SoS} 0
+  \end{align}
+\end{proof}
+
+\begin{remark}
+  Most ``standard'' inequalities have SoS proofs:
+  \begin{itemize}
+    \item Arithmetic mean geometric mean
+    \item Cauchy-Schwarz
+    \item H\"older's inequality
+  \end{itemize}
+\end{remark}
+
+Our general strategy: construct SoS proof that
+$\braket{M_{2k}, v^{\otimes 2k}} \leq_{SoS} \lambda \|v\|_2^{2k}$
+
+
+\begin{lemma}[PSD implies SoS]\label{lem:psd-implies-sos}
+  If $P \succeq 0$, then $v^\top P v \geq_{SoS} 0$.
+\end{lemma}
+\begin{proof}
+  $P = \sum_i \lambda_i u_i u_i^\top$ so $v^\top P v = \sum_i \lambda_i \braket{u_i, v}^2 \geq_{SoS} 0$.
+\end{proof}
+
+\begin{proof}[Proof for Gaussians]
+  \begin{align}
+    \ex_{X \sim N(\mu,\Sigma)}\left[
+      \braket{X - \mu, v}^{2k}
+    \right]
+    &= \underbrace{(2k-1)(2k-3)\cdots 3  \cdot 1}_{\text{product of odd numbers}} \cdot (v^\top \Sigma v)^k
+  \end{align}
+  (see Issirlis's Theorem).
+
+  Applying \cref{lem:psd-implies-sos} shows $v^\top \Sigma v \leq_{SoS} \|\Sigma\|_{op} \|v\|_2^2$, and
+  \begin{align}
+    (v^\top \Sigma v)^{k}
+    &\leq_{SoS} (\|\Sigma\|_{op} \|v\|_2^2)^k
+    = \|\Sigma\|_{op}^k \|v\|_2^{2k}
+  \end{align}
+  So $\lambda = \|\Sigma\|_{op}^2 ((2k-1)\cdots3\cdot1)$
+  provides a $2k$th moment bound for Gaussians.
+\end{proof}
+
+\subsection{Poincar\'e inequality}%
+
+\begin{definition}
+  A distribution $p$ on $\RR^d$ satisfies \emph{Poincar\'e inequality with parameter}
+  $\sigma$ if
+  \begin{align}
+    \Var_p[f(x)] \leq \sigma^2 \ex_p[\|\nabla f(x)\|_2^2]
+  \end{align}
+  for all differentiable $f : \RR^d \to \RR$.
+\end{definition}
+
+\begin{remark}
+  \begin{itemize}
+    \item Interpret as global $\leftrightarrow$ local property. If $f$ has
+      a lot of variation under $p$, then for a typical $x \sim p$
+      it is also changing a lot (i.e. large derivative)
+    \item No ``holes'': the support of $p$ must be connected and have trivial
+      fundamental group.
+      This excludes discrete distributions. Also see
+      Figure 10.3.1.
+      (Fig 10.3.1: Non-example. Take two disjoint sets both of
+      probability $1/2$, $f$ the Urysohn's Lemma separating function,
+      $\Var[f] = 1/4$ and $\ex[\|\nabla f\|_2^2] = 0$ so this $p$ with a
+      ``hole'' between $A$ and $B$ fails to satisfy any Poincar\'e inequality.)
+  \end{itemize}
+\end{remark}
+
+\begin{example}
+  \begin{itemize}
+    \item $\cN(\mu, \sigma^2)$ is $\sigma$-Poincar\'e
+    \item $p$, $p'$ $\sigma$-Poincar\'e, then $p \times p'$ is
+      $\sigma$-Poincar\'e.
+      In particular, $\cN(\mu, \sigma^2 I)$ is $\sigma$-Poincar\'e.
+    \item $X \sim p$ $\sigma$-Poincar\'e, $A$ a linear mp, then
+      $A X$ is $(\|A\|_{op} \sigma)$-Poincar\'e.
+      In particular, $\cN(\mu, \Sigma)$ is $\|\Sigma\|^{1/2}_{op}$-Poincar\'e.
+    \item $f : \RR^d \to \RR^{d'}$ is $L$-Lipschitz, then $f(X)$ is
+      $(L \sigma)$-Poincar\'e.
+  \end{itemize}
+\end{example}
+
+\begin{theorem}[Bakry + \'Emery, 1985]
+  If $p$ is $\log$-concave, $\nabla^2 \log p(x) \leq -\frac{1}{\sigma^2} I$,
+  then $p$ is $\sigma$-Poincar\'e.
+\end{theorem}
+
+\begin{remark}
+  This theorem covers Gaussians, where
+  $p(x) = \exp(-\psi(x))$ with $\psi(x) = (X - \mu)^\top \Sigma^{-1} (X - \mu)$.
+\end{remark}
+
+\begin{theorem}[Bounded distributions are Poincar\'e after convolving with Gaussians]
+  $X \sim p$, $\supp(p)$ has radius $\leq R$,
+  $Z \sim N(0, \tau^2 I)$ with $\tau \geq 2 R$,
+  then $X + Z$ is $(\tau \sqrt{e})$-Poincar\'e
+\end{theorem}
+
+\begin{theorem}[Lipschitz functions of Poincar\'e RVs are SE]
+  If $p$ is $\sigma$-Poincar\'e, $f$ is $L$-Lipschitz, then
+  \begin{align}
+    \Pr[\lvert f(x) - \ex f(x) \rvert \geq t] \leq 6 \exp\left(-\frac{t}{\sigma L}\right)
+  \end{align}
+\end{theorem}
+
+\begin{example}
+  Let $(X,Y) \in \RR^{2d}$, $X \sim N(0, I)$, $Y = \eps \cdot X$,
+  $\eps \sim \Rad$.
+
+  Consider $f(X, Y) = \sum_i X_i Y_i$. Then
+  \begin{align}
+    \nabla f(X, Y) &= (Y_1, \ldots, Y_d, X_1, \ldots, X_d) \\
+    \| \nabla f(X, Y)\|_2^2 &\approx 2d \\
+    \Var[f] \approx d^2
+  \end{align}
+  where the first $\approx$ is because each of the $2d$ coordinates of
+  $\nabla f$ is Gaussian and $\|X\|_2^2 \approx 1$, and the second
+  $\approx$ is because
+  \begin{align}
+    Y_i &= \eps X_i \\
+    f(X, Y) &= \eps \cdot (X_1^2 + \cdot + X_d^2)
+  \end{align}
+  So $f$ is approximately $+d$ or $-d$ with equal probability.
+\end{example}
+
+
+\begin{theorem}[Adamczak and Wolff, 2015]
+  If $f : \RR^d \to \RR$ such that
+  \begin{align}
+    \ex[\nabla f(x)] &= 0 \\
+    \ex[\nabla^2 f(x)] &= 0 \\
+    \vdots& \\
+    \ex[\nabla^{k-1} f(x)] &= 0
+  \end{align}
+  Then $\Var_p[f] \leq c_k \sigma^{2k} \ex[\|\underbrace{\nabla^k f(x)}_{\RR^{d^k}} \|_F^2]$
+\end{theorem}
+
+\subsection{SoS proofs for 2k moments}%
+
+Recall our goal of showing
+\begin{align}
+  \ex_p[\braket{X - \mu, v}^{2k}] \leq_{SoS} \lambda \|v\|_2^2
+\end{align}
+$p$ is $\sigma$-Poincar\'e $\implies$ $\lambda = c_k \sigma^{2k}$.
+We will consider $k = 1, 2, 3$ here.
+
+Define the moment tensor
+\begin{align}
+  M_k &= \ex_p[(X - \mu)^{\otimes k}] \\
+  M_k(v) &= \braket{M_k, v^{\otimes k}} = \ex_p[\braket{X - \mu, v}^k]
+\end{align}
+
+\begin{proof}[Proof for k=1]
+  Poincar\'e
+  \begin{align}
+    f_v(X) &= \braket{X - \mu, v} \\
+    \nabla f_v(X) &= v \\
+    M_2(v) = \Var[f_v] &\leq \sigma^2 \ex[\|v\|_2^2] = \sigma^2 \|v\|^2
+  \end{align}
+  But this means $\sigma^2 I - M_2 \succeq 0$
+  so by \myref{lem:psd-implies-sos} $M_2(v) \leq_{SoS} \sigma^2 \|v\_2^2$.
+\end{proof}
+
+\begin{proof}[Proof for k=2]
+  \begin{align}
+    f_v(X) &= \braket{X - \mu, v}^2 \\
+    \nabla f_v(X) &= 2 \braket{X - \mu, v} \cdot v \\
+    \implies \ex[\nabla f_v(x)] &= 0
+  \end{align}
+  \begin{align}
+    \Var[f_v]
+    &\leq c_2 \sigma^2 \ex[\|\nabla^2 f_v\|_F^2] \\
+    &= c_2 \sigma^2 \ex[\|4 v v^\top \|_F^2] \\
+    &= 4 c_2 \sigma^2 \|v\|_2^4
+  \end{align}
+  But we know
+  \begin{align}
+    \Var[f_v]
+    &= M_4(v) - M_2(v)^2 \\
+    M_4(V) 
+    &= \Var[f_v] + M_2(v)^2 \\
+    &\leq 4 c_2 \sigma^4 \|v\|_2^4 + \sigma^4 \|v\|_2^4 \label{eq:var-upper-bd-frob}\\
+    &\leq (4 c_2 + 1) \sigma^4 \|v\|_2^4 
+  \end{align}
+  How do we turn this to a SoS proof? One part is easy:
+  by the multiplicative composition property for SoS ordering
+  \begin{align}
+    M_2(v) &\leq_{SoS} \sigma^2 \|v\|_2^2 \\
+    M_2(v)^2 &\leq_{SoS} \sigma^4 \|v\|_2^4
+  \end{align}
+  The Poincar\'e term is harder. Passing from vector $v$ to matrix $A$
+  \begin{align}
+    f_v(X) &= \braket{X - \mu, v}^2 \\
+    f_A(X) &= (X - \mu)^\top A (X - \mu) \\
+    \Var[f_A] &\leq c_2 \sigma^4 4 \|A\|_F^2
+  \end{align}
+  where we used \cref{eq:var-upper-bd-frob}. But also
+  \begin{align}
+    \Var[f_A]
+    &= \ex[((X - \mu)^\top A (X - \mu))^2] - \ex[(X - \mu)^\top A (X - \mu)]^2 \\
+    &= \braket{M_4, A \otimes A} - \braket{M_2 \otimes M_2, A \otimes A}
+  \end{align}
+  Parsing the tensor notation, this again says that $M_4$ satisfies a PSD
+  constraint where we can apply \myref{lem:psd-implies-sos}.
+\end{proof}
+
+\begin{proof}[k=3]
+  Consider $f_v(X) = \braket{X - \mu, v}^3$. This doesn't work because
+  \begin{align}
+    \nabla f_v(x) &= 3 \braket{X - \mu, jv}^2 v \\
+    \ex \nabla f_v(x) &= 3 \Sigma(v) \cdot v \neq 0
+  \end{align}
+  So instead we pick
+  \begin{align}
+    f_v(x) &= \braket{X - \mu, v}^3 - 3 (v^\top \Sigma v) \braket{X - \mu, v}
+  \end{align}
+  and verify
+  \begin{align}
+    \ex[\nabla f_v] &= 0 \\
+    \ex[\nabla^2 f_v] &= 0 \\
+    \nabla^3 f_v &= 6 (v \otimes v \otimes v)
+  \end{align}
+  Apply the theorem to the third derivative, use our previous bounds to handle
+  the even moments. There is an additional $M_3(v)^2$ term, which
+  we can handle with H\"older's inequality to show
+  \begin{align}
+    M_3(v)^2 \leq_{SoS} M_2(v) M_4(v)
+  \end{align}
+\end{proof}

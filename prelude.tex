@@ -34,16 +34,16 @@
 \usepackage[nottoc]{tocbibind}
 \usepackage[toc,page]{appendix}
 
-% % show labels for \ref in margins
-% \usepackage{seqsplit}
-% \usepackage{showkeys}
-% \usepackage{xstring}
-% \renewcommand*\showkeyslabelformat[1]{%
-% \noexpandarg%
-% % instead of \textvisiblespace you can also put in ~
-% % if you want to keep a plain space at space characters
-% \StrSubstitute{\(\{\)#1\(\}\)}{ }{\textvisiblespace}[\TEMP]%
-% \parbox[t]{\marginparwidth}{\raggedright\normalfont\small\ttfamily\expandafter\seqsplit\expandafter{\TEMP}}}
+% show labels for \ref in margins
+\usepackage{seqsplit}
+\usepackage{showkeys}
+\usepackage{xstring}
+\renewcommand*\showkeyslabelformat[1]{%
+\noexpandarg%
+% instead of \textvisiblespace you can also put in ~
+% if you want to keep a plain space at space characters
+\StrSubstitute{\(\{\)#1\(\}\)}{ }{\textvisiblespace}[\TEMP]%
+\parbox[t]{\marginparwidth}{\raggedright\normalfont\small\ttfamily\expandafter\seqsplit\expandafter{\TEMP}}}
 
 
 \usepackage{algorithm2e}

@@ -1,0 +1,269 @@
+\section{10/8/2019}
+
+\subsection{Resilience Beyond Mean Estimation}
+
+\begin{itemize}
+  \item General framework: still $D = \TV$
+  \item Will generalize
+    \begin{itemize}
+      \item Modulus of continuity
+      \item Resilience
+      \item Analogue of $\cG_{\Cov}(\sigma)$
+        \begin{itemize}
+          \item Moment estimation
+          \item Linear regression
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+Recall our general framework for robust statistics
+(\cref{fig:robust-statistics-framework}, reproduced below):
+\begin{figure}[H]
+    \centerline{
+        \xymatrix{
+            \txt{train \\ $\tilde{p}$} \ar[d] \ar@{<->}[r]^-{D(\tilde{p}, p^*) \leq \eps} \ar[dr]
+            & \txt{test\\$p^* \in \cG$} \ar[dr] \\
+            \txt{$X_1, \ldots, X_n$\\samples} \ar[r] &
+            \txt{$\hat\theta(\tilde{p})$\\estimator} \ar[r] &
+            \txt{$L(p^*, \hat\theta)$\\loss}
+        }
+    }
+\end{figure}
+
+For now, assume $n = \infty$ so we neglect finite sample issues
+and our estimator $\hat\theta(\tilde{p})$ directly uses the population
+distribution $\tilde{p}$.
+
+\begin{example}
+  $D = \TV$ and $L(p, \theta) = \|\theta - \mu(p)\|_2$ (mean-estimation).
+
+  For second-moment estimation, we can consider
+  $L(p, \underbrace{S}_{\in \RR^{d \times d}}) = \|S - \ex_p[X X^\top] \|$.
+  This only measures the top eigenvector, so sometimes a more natural loss is
+  \begin{align}
+    \|I - \Sigma^{-1} \Cov_p[X]\|_F
+  \end{align}
+  where the Frobenius norm now weights all eigenvalues equally.
+
+  In linear regression, the excess squared loss
+  $L(p, \theta) = \ex_{(x,y) \sim p}[(y - \braket{\theta, x})^2 - (y - \braket{\theta^*(p), x})^2]$.
+\end{example}
+
+\subsubsection{MDF modulus bound}
+
+Recall for a family $\cG$, the modulus of continuity
+\begin{align}
+  \fm(\cG, 2\eps) &= \sup_{\substack{p, q \in \cG \\ \TV(p,q) \leq 2 \eps)}}
+  \underbrace{\|\mu(p) - \mu(q)\|_2}_{L(p, \theta)}
+\end{align}
+We can generalize it to other losses as
+\begin{align}
+  \fm(\cG, 2\eps) &= \sup_{\substack{p, q \in \cG \\ \TV(p,q) \leq 2 \eps)}}
+  L(p, \theta^*(q))
+\end{align}
+There is a suitable generalization of \myref{prop:mdf-modulus-error-bound}
+\begin{proposition}[Minimum distance functional $\leq \fm$]
+  \begin{align}
+    \hat\theta(\tilde{p}) = \theta^*(q)~\text{where}~q = \argmin_{q \in \cG} \TV(\tilde{p}, q)
+  \end{align}
+  By assumption, $q \in \cG$ and $\TV(\tilde{p}, q) \leq \eps$.
+
+  Figure 10.8.1
+
+  \begin{align}
+    \TV(p^*, q) &\leq 2 \eps \\
+    L(p^*, \theta^*(q)) \leq \fm(\cG, 2 \eps)
+  \end{align}
+  $(p^*, q \in \cG)$
+\end{proposition}
+
+\subsubsection{Resilience}
+
+Recall $p$ is $(\rho, \eps)$-resilient if
+\begin{align}
+  \|\mu(p) - \mu(r)\|_2 \leq \rho~\text{whenever}~r \leq \frac{p}{1-\eps}
+\end{align}
+$\cG_{\TV}(\rho, \eps)$ denotes the set of all $(\rho, \eps)$-resilient distributions.
+
+\begin{lemma}
+  If $\TV(p, q) \leq \eps$, there is a \emph{midpoint} $r$ such that
+  $r \leq \frac{p}{1-\eps}$, $r \leq \frac{q}{1-\eps}$.
+\end{lemma}
+
+Figure 10.8.2: For resilient distributions, $\fm(\cG_\TV, \eps) \leq 2 \rho$.
+
+We used symmetry properties of mean estimation quite extensively in the above
+argument, so we need to extract these properties in order to generalize
+resilience:
+
+\begin{definition}[Generalized resilience]\label{def:resilience-general}
+  $p$ is \emph{$(\rho_1, \rho_2, \eps)$-resilient (for general $L$)} if
+  \begin{description}
+    \item[Downwards condition] $L(r, \theta^*(p)) \leq \rho_1$ for all $r \leq \frac{p}{1-\eps}$.
+      So doing well on $p$ means we also do well on $\eps$-deletions
+    \item[Upwards condition] If $L(r, \theta) \leq \rho_1$ for any $r \leq \frac{p}{1-\eps}$
+      and $\theta$, then $L(p, \theta) \leq \rho_2$. So doing well
+      on all $\eps$-deletions means that we also do well on $p$.
+  \end{description}
+  We have two conditions to generalize beyond mean estimation, because these
+  losses may not have symmetry.
+\end{definition}
+
+\begin{example}[Mean estimation]
+  $L(p, \theta) = \|\mu(p) - \theta\|_2$, $\theta^*(p) = \mu(p)$.
+
+  The downward condition:
+  \begin{align}
+    L(r, \theta^*(p)) &= \|\mu(r) - \mu(p)\|_2 \\
+    \|\mu(r) - \mu(p)\|_2 &\leq \rho \qquad \forall r \leq \frac{p}{1-\eps}
+  \end{align}
+
+  The upward condition:
+  \begin{align}
+    \left.
+    \begin{array}{c}
+      \text{if }\|\mu(r) - \theta\|_2 \leq \rho_1 \\
+      \text{then } \|\mu(r) - \theta\|_2 \leq \rho_2
+    \end{array}
+    \right\}
+    \|\mu(r) - \mu(p)\|_2 \leq \rho_2 - \rho_1
+  \end{align}
+  % $\|\mu(p) - \theta\|_2 \leq \|\mu(r) - \theta\|_2 + \|\mu(r) - \mu(p)\|_2 \leq \rho_2$.
+
+  So generalized resilience here is saying the means are close, consistent
+  with the previous definition (\cref{def:resilience}).
+\end{example}
+
+$(\rho,\eps)$-resilience $\iff$ $(\rho, 2\rho, \eps)$-resilience.
+
+\begin{proposition}
+  $\cG_{\downarrow}(\rho_1, \eps) = \{\text{ all $p$ satisfying $\downarrow$}\}$
+
+  $\cG_{\uparrow}(\rho_1, \rho_2, \eps) = \{\text{ all $p$ satisfying $\uparrow$}\}$
+
+  % $\cG_{\TV}(\rho_1, \rho_2, \eps) = \cG_{\downarrow}(\rho_1, \eps) \cap \cG_{\uparrow}(\rho_1, \rho_2, \eps)$.
+
+  Then $\fm(\cG_{\TV}(\rho_1, \rho_2, \eps), \eps) \leq \rho_2$.
+\end{proposition}
+
+\begin{proof}
+  Need to show $p, q \in \cG_{\TV}$, $\TV(p, q) \leq \eps$, we have
+  $L(p, \theta^*(q)) \leq \rho_2$.
+
+  Figure 10.8.3: $\cG_\downarrow$ was used to move $q \to r$
+  and $\cG_\uparrow$ to move $r \to p$.
+\end{proof}
+
+\begin{remark}
+  This theory only holds for $D = \TV$, otherwise we are not guaranteed $\exists r$.
+\end{remark}
+
+\begin{example}[Second moment estimation]
+  $L(p, S) = \|S - \ex_p[ X X^\top]\|$.
+
+  $\cG_\downarrow(\rho, \eps) \implies \|\ex_r[x x^\top] - \ex_p[x x^\top]\| \leq \rho_1$
+  whenever $r \leq \frac{p}{1-\eps}$.
+  This is just saying that $X X^\top$ is (old) $(\rho_1, \eps)$-resilient under
+  operator norm.
+
+  $\cG_\uparrow(\rho, \eps) \implies \|\ex_r[X X^\top] - S\| \leq \rho_1$,
+  $\rho_2 = 2 \rho_1$, $\implies \|\ex_p[x x^\top] - S\| \leq \rho_2$.
+
+  We will show $X X^\top$ is $(2 \sigma \sqrt{\eps}, \eps)$-resilient in operator
+  norm $\Leftarrow$ $\Var[\braket{X X^\top, Z}] \leq \sigma^2$ whenever $\|Z\|_* \leq 1$.
+
+  For $\|\cdot\|$ the operator norm, the dual norm is the nuclear norm
+  \begin{align}
+    \|Z\|_* = \sum_i \sigma_i(Z)
+  \end{align}
+  where $\sigma_i(Z)$ are the singular values of $Z$.
+  For $\Z\|_* \leq 1$, the extreme points are $\pm v v^\top$
+  with $\|v\|_2 \leq 1$.
+
+  \begin{align}
+    \Var[\braket{X X^\top, v v^\top}]
+    &= \Var[\braket{X, v}^2]
+    \leq \ex[\lvert \braket{X, v}^2 \rvert^2]
+    = \ex[\braket{x, v}^4]
+    \underbrace{\leq}_{\text{WTS}} \sigma^2
+  \end{align}
+  If we have $\ex[\braket{x, v}^4]^{1/4} \leq \tau$,
+  then $\sigma = \tau^2$ and we get $(2 \tau^2 \sqrt{\eps}, \eps)$-resilience.
+
+  This works for any $k$ (bounded $2k$th moments), so we get
+  $(2 \sigma \eps^{1 - 1/k}, \eps)$-resilience (mean)
+  and $(2 \sigma^2 \eps^{1 - 2/k}, \eps)$-resilience (second moment).
+\end{example}
+
+
+\begin{proposition}[Linear regression]
+  Suppose $(X, Y) \sim p$, $L$ is excess squared loss,
+  $Z = Y - \braket{\theta^*(p), X}$.
+  If
+  \begin{enumerate}
+    \item $\ex[\braket{x, v}^4] \leq \kappa \ex[\braket{x, v}^2]^2$ for all $v$
+    \item $\ex[X Z^2 X^\top] \preceq \sigma^2 \ex[X X^\top]$
+  \end{enumerate}
+  and $\eps \leq 1/2$, $\eps(\kappa - 1) \leq 1 / 16$, then $p$
+  is $(\rho, 5\rho, \eps)$-resilient with $\rho = 3 \sigma \sqrt{\eps}$.
+\end{proposition}
+
+\begin{proof}
+  Some general observations:
+  \begin{itemize}
+    \item $L(p, \theta) = \ex_p[(y - \braket{\theta, x})^2 - (y - \braket{\theta^*(p), x})^2]
+      = (\theta - \theta^*(p))^\top S_p (\theta - \theta^*(p))$
+      where $S_p = \ex_p[X X^\top]$.
+    \item $S_r \approx S_p$
+    \item $\theta^*(r) \approx \theta^*(p)$
+  \end{itemize}
+
+  \begin{lemma}
+    If $\eps (\kappa - 1) \leq \frac{1}{16}$, then
+    \begin{align}
+      \frac{1}{2} S_p \preceq S_r \preceq \frac{3}{2} S_p
+    \end{align}
+    if $r \leq \frac{p}{1-\eps}$
+  \end{lemma}
+  \begin{proof}
+    For all $r$
+    \begin{align}
+      v^\top S_p v - v^\top S_r v
+      &= \lvert \ex_p[\braket{x,v}^2] - \ex_r[\braket{x,v}^2]\rvert
+      \leq 2 \sqrt{\eps \Var_p[\braket{x,v}^2]}
+    \end{align}
+    Furthermore
+    \begin{align}
+      \Var_p[\braket{x,v}^2]
+      &= \underbrace{\ex_p[\braket{x,v}^4]}_{\leq \kappa \ex_p[\braket{x,v}^2]^2}
+      - \ex_p[\braket{x,v}^2]^2
+    \end{align}
+    Hence
+    \begin{align}
+      \lvert \ex_p[\braket{x,v}^2] - \ex_r[\braket{x,v}^2]\rvert
+      &\leq 2 \sqrt{\eps (\kappa - 1)} \ex_p[\braket{x,v}^2]
+      \leq \frac{1}{2} \ex_p[\braket{x,v}^2]
+    \end{align}
+    Hence $\ex_r[\braket{x,v}^2] \in (1/2 \ex_p[\braket{x,v}^2], 3/2 \ex_p[\braket{x,v}^2])$.
+  \end{proof}
+
+  Note $\theta^*(r) - \theta^*(p) = S_r^{-1} \ex_r[X Z]$.
+  Take for granted $\| S_r^{-1/2} \ex_r[X Z]\|_2 = \cO(\sigma \sqrt{\eps})$ (will prove next time).
+
+  For now we analyze the upwards an downwards conditions. Starting with $\cG_{\downarrow}$
+  \begin{align}
+    (\theta^*(p) - \theta^*(r))^\top S_r (\theta^*(p) - \theta^*(r)) 
+    &\leq \rho \\
+    (S_r^{-1} \ex_r[X Z])^\top S_r (S_r^{-1} \ex[X Z])
+    &=  \ex_r[X Z]^\top S_r^{-1} \ex_r[X Z] \\
+    &= \|S_r^{-1/2} \ex_r[X Z]\|_2
+  \end{align}
+  For $\cG_{\uparrow}$, want to show
+  \begin{align}
+    (\theta - \theta^*(r))^\top S_r (\theta - \theta^*(r)) 
+    \leq \rho_1
+    &\implies (\theta - \theta^*(p))^\top S_p (\theta - \theta^*(p))
+  \end{align}
+  To do this, will expand $(\theta - \theta^*(p) + \theta^*(p) - \theta^*(r))$
+  and replace $S_r$ with $S_p$, then apply triangle inequality.
+\end{proof}
