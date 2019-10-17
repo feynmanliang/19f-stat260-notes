@@ -167,9 +167,7 @@ However this intuition is flawed in two ways:
   Let $c_i' = c_i \left( 1 - \frac{\tau_i}{\tau_{\max}} \right)$.
   \begin{align}
     \sum_{i \in S} (1 - c_i') = \sum_{i \in S} (1 - c_i) +
-    \underbrace{\sum_{i \in S} (c_i - c_i')}_{
-      =\frac{1}{\tau_\max} \sum_i c_i \tau_i
-    }
+    \underbrace{\sum_{i \in S} (c_i - c_i')}_{=\frac{1}{\tau_{\max}} \sum_i c_i \tau_i}
   \end{align}
   To show Invariant 2, want
   \begin{align}
@@ -195,7 +193,7 @@ However this intuition is flawed in two ways:
   \end{align}
   Therefore
   \begin{align}
-    \sum_{i \in S} c_i \tau_i &\leq (1 - \eps) n (\sigma^2 + 
+    \sum_{i \in S} c_i \tau_i &\leq (1 - \eps) n (\sigma^2 +
     \underbrace{\cO(\hat\sigma_c^2 \eps)}_{\text{small as }\eps \to 0})
   \end{align}
   \begin{align}
