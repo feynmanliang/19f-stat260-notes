@@ -1,0 +1,286 @@
+\section{10/17/2019}
+
+\subsection{Efficient Algorithms for Robust Linear Regression}
+
+\begin{itemize}
+  \item Last time
+    \begin{itemize}
+      \item Resilience for linear regression (hypercontractivity and bounded noise)
+	and classification (tails decay quickly once they decay at all)
+    \end{itemize}
+  \item This time
+    \begin{itemize}
+    	\item Efficient algorithm for linear regression, generalizing previous
+	  down-weighting algorithm to filter wrt hypercontractivity and
+	  bounded noise
+	\item \textbf{Problem}: hypercontractivity is not easy to check.
+	  \begin{itemize}
+	    \item To work around, replace with stronger condition of
+	      ``SoS-certifiably hypercontractive''
+	    \item Will need a new SoS tool called ``pseudoexpectations''
+	  \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsection{Pseudoexpectations}
+
+Recall that a sum-of-squares (SoS) program looks like:
+\begin{align}
+  \max_{y}~& c^\top y  \\
+  \text{st}~ p_y(v) &\geq_{SoS} 0~\text{(in $v$)}
+\end{align}
+where $p_y(v)$ is a polynomial with coefficients linear in $y$.
+
+\begin{definition}[Pseudoexpectation]
+  A \emph{degree-2k pseudoexpectation} is a linear map 
+  $E : \{\text{degree-$2k$ polynomials}\} \to \RR$ such that
+  \begin{enumerate}
+    \item $E[1] = 1$
+    \item $E[q] \geq 0$ if $q \geq_{SoS} 0$
+  \end{enumerate}
+
+  Let $\cE_{2k}$ be the set of all degree-$2k$ pseudoexpectations.
+\end{definition}
+
+\begin{remark}
+  By linearity and the second property,
+  $E[p] \leq E[q]$ if $p \leq_{SoS} q$
+\end{remark}
+
+\begin{example}
+  $p \mapsto p(v_0)$
+
+  $p \mapsto \ex_{v_0 \sim N(\mu, \Sigma)}[p(v_0)]$
+\end{example}
+
+\subsubsection{Efficiency}
+
+\textbf{Question}: Can we efficiently impose a $\cE_{2k}$ constraint?
+
+Yes! Can check membership in this set efficiently
+(need to build a \emph{separation oracle}).
+
+To check $E \in \cE_{2k}$
+\begin{align}
+  \min_q~& E[q] \\
+  \text{st}~q &\geq_{SoS} 0\\
+  \deg q &\leq 2k
+\end{align}
+Can parameterize $q$ using $d^{2k}$ coefficients.
+
+\subsubsection{Algorithm}%
+
+\textbf{Setup}: $(X_i, Y_i) \in \RR^d \times \RR$ for $i \in [n]$,
+``good'' set $S \subset [n]$ with $\lvert S \rvert = (1 - \eps) n$ of the points.
+Think of $p^*$ as uniform on $S$ and $\tilde{p}$ as uniform on $[n]$.
+
+We will be generalizing the bounded covariance algorithm from before.
+
+Need two conditions for our algorithm to work. The first is
+\emph{certifiable hypercontractivity}
+\begin{align}
+  \frac{1}{n}  \sum_{i \in S} \braket{X_i, v}^4 \leq_{SoS} \kappa \left(
+    \frac{1}{n} \sum_{i \in S} \braket{X_i, v}^2
+  \right)^2
+\end{align}
+and the second is a generalization of \emph{bounded noise} from before
+\begin{align}
+  \frac{1}{n} \sum_{i \in S} 
+  (\underbrace{Y_i - \braket{\theta^*, X_i}}_{Z_i})^2 X_i X_i^\top
+    \preceq \sigma^2 \frac{1}{n} \sum_{i \in S} X_i X_i^\top
+\end{align}
+
+
+
+
+\begin{itemize}
+  \item \textbf{Input}: $(x_i, y_i)_{i \in [n]}$
+  \item \textbf{Initialize}: $c_i = 1$ for all $i \in [n]$
+  \item Let $q(\vec{c}) = \sum_{i \in [n]} \frac{c_i}{\sum_i c_i} \delta_{(x_i,
+    y_i)}$ be the empirical distribution weighted by $\vec{c}$.
+  \item Repeat: $(\hat\theta_c = \argmin_\theta \frac{1}{n}  \sum_{i=1}^n c_i (y_i - \braket{\theta, x_i})^2$
+    \begin{itemize}
+      \item (check hypercontractivity) Find (if possible) $E \in \cE_{4}$ such that
+	\begin{align}
+	  E\left[
+	    \frac{1}{n} \sum^{n}_{i=1} c_i \braket{x_i, v}^4
+	  \right]
+	  \geq 3 \kappa E\left[ \left( 
+	      \frac{1}{n} \sum^{n}_{i=1} c_i \braket{x_i, v}^2
+	  \right)\right]
+	\end{align}
+      \item If $E$ exists,
+	\begin{align}
+	  \tau_i &\leftarrow E[\braket{x_i, v}^4]\\
+	  c_i &\leftarrow c_i\left(
+	    1 - \frac{\tau_i}{\tau_{\max}} 
+	  \right)
+	\end{align}
+	and go to next loop iteration
+      \item (check bounded noise) Find (if possible) $v \in \RR^d$ such that
+	\begin{align}
+	  \frac{1}{n} \sum_{i=1}^n c_i (y_i - \braket{\hat{\theta}_c, x_i})^2 \braket{x_i, v}^2
+	  &\geq 24 \sigma^2 \frac{1}{n} \sum^{n}_{i=1} c_i \braket{x_i, v}^2
+	\end{align}
+      \item If $v$ exists,
+	\begin{align}
+	  \tau_i &\leftarrow (y_i - \braket{\hat{\theta}_c, x_i})^2 \braket{x_i, v}^2 \\
+	  c_i &\leftarrow c_i\left(
+	    1 - \frac{\tau_i}{\tau_{\max}} 
+	  \right)
+	\end{align}
+	and go to next loop iteration
+    \end{itemize}
+  \item Output $\hat{\theta}_c$
+\end{itemize}
+
+Each iteration repeatedly finds candidates violating hypercontractivity or
+bounded noise and updates $c$ to reduce their influence.
+
+The algorithm is guaranteed to terminate, because some $c_i$ gets set to zero
+each iteration so there are at most $n$ iterations.
+
+The following lemma says that $q(c)$ continues to satisfies certifiably
+hypercontractive and bounded noise after the updates:
+\begin{lemma}
+  Suppose $S$ satisfies hypercontractivity and bounded noise conditions,
+  and $c_i \in [0,1]$ satisfy $\frac{1}{n}  \sum_{i \in S} (1 - c_i) \leq \eps$.
+  Then
+  \begin{align}
+    \frac{1}{n} \sum_{i \in S} c_i \braket{x_i, v}^4 
+    &\leq_{SoS} \frac{\kappa}{1 - \kappa \eps} \left(
+      \frac{1}{n} \sum_{i \in S} c_i \braket{x_i, v}^2
+    \right)^2 \\
+    \frac{1}{n}  \sum_{i \in S} c_i \braket{x_i, v}^2
+    &\geq (1 - \kappa \eps) \frac{1}{n}  \sum_{i \in S} \braket{x_i, v}^2
+  \end{align}
+  The second result implies bounded noise with parameter $\frac{\sigma^2}{1 - \kappa \eps}
+  $.
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+  For the hypercontractivity, if we define 
+  \begin{align}
+    A &= \frac{1}{n}  \sum_{i \in S} \braket{x_i, v}^4
+  \end{align}
+  to be the initial distribution for the $4$th moment over $S$
+  and 
+  \begin{align}
+    B &= \frac{1}{n} \sum_{i \in S} \braket{x_i, v}^2
+  \end{align}
+  and if we define $C$ and $D$ to be the amount we're taking away
+  \begin{align}
+    C &= \frac{1}{n}  \sum_{i \in S} (1 - c_i) \braket{x_i, v}^4 \\
+    D &= \frac{1}{n}  \sum_{i \in S} (1 - c_i) \braket{x_i, v}^2
+  \end{align}
+  Then we know $\kappa B^2 - A \geq_{SoS} 0$ and 
+  $\frac{1}{\eps} c - \left(\frac{1}{\eps} D \right)^2 \geq_{SoS} 0$,
+  and we want to show
+  \begin{align}
+    \frac{\kappa}{1 - \kappa \eps}(B - D)^2 - (A - C)  \geq_{SoS} 0
+  \end{align}
+  We can check this is true by factoring.
+\end{proof}
+
+\begin{proposition}
+  If $\eps \leq \frac{1}{100}$ and $\kappa \eps \leq \frac{1}{50}$
+  and $q(c)$ satisfies certifiable hypercontractivity and bounded
+  noise conditions, then the output of the algorithm has
+  excess squared loss $\leq 250 \sigma^2 \eps$.
+\end{proposition}
+
+\begin{proof}[Proof structure]
+  Same as covariance case:
+  \begin{enumerate}
+    \item Remove more bad points than good points (so close in $\TV$ distance)
+      \begin{align}
+	\sum_{i \in S} c_i \tau_i \leq \frac{1}{2} \sum_{i=1}^n c_i \tau_i
+      \end{align}
+      \begin{itemize}
+	\item Hypercontractive 
+	\item Bounded noise
+      \end{itemize}
+    \item $\hat{\theta}_c$ okay if we terminate (use resilience and small $\TV(q(c), p^*)$
+  \end{enumerate}
+
+  For hypercontractivity, ``check hypercontractivity''
+  filtering step terminates when does not exist pseudoexpectation $E
+  \in \cE_4$ refuting hyercontractivity
+  \begin{align}
+    \frac{1}{n} \sum_{i \in S} c_i E[\braket{x_i, v}^4]
+    &\leq \frac{1}{2}  \frac{1}{n}  \sum_{i=1}^n c_i E[\braket{x_i, v}^4] \\
+    \frac{1}{n} \sum_{i \in S} c_i E[\braket{x_i, v}^4]
+    &\leq \frac{\kappa}{1 - \kappa \eps}  E\left[\left(
+	\frac{1}{n}  \sum_{i \in S} c_i \braket{x_i, v}^2
+    \right)^2\right] \\
+    &\leq \frac{\kappa}{1 - \kappa \eps}  E\left[\left(
+	\frac{1}{n}  \sum_{i=1}^n c_i \braket{x_i, v}^2
+    \right)^2\right] \\
+    \frac{1}{n}  \sum_{i=1}^n c_i E[\braket{x_i, v}^4]
+    &\geq 3 \kappa E\left[\left(
+	\frac{1}{n} \sum^{n}_{i=1} c_i E[\braket{x_i, v}^2]
+    \right)^2\right]
+  \end{align}
+  so we need $\frac{\kappa}{1 - \kappa \eps} \leq \frac{3 \kappa}{2}$,
+  which is true since $\kappa \eps \leq \frac{1}{50}$.
+
+  For bounded noise, need to show
+  \begin{align}
+    \frac{1}{n} \sum_{i \in S} c_i z_i^2 \braket{x_i, v}^2
+    &\leq \frac{1}{2} \frac{1}{n} \sum_{i=1}^n c_i z_i^2 \braket{x_i, v}^2
+  \end{align}
+  We already have
+  \begin{align}
+    \braket{x_i, v}^2 \leq 12 \sigma^2 \sum_{i=1}^n c_i \braket{x_i, v}^2
+  \end{align}
+  and the RHS is lower bounded
+  \begin{align}
+    \frac{1}{2} \frac{1}{n} \sum_{i=1}^n c_i z_i^2 \braket{x_i, v}^2
+    &\geq 24 \sigma^2 \sum_{i=1}^n c_i \braket{x_i, v}^2
+  \end{align}
+  Expanding $z_i^2$, we have
+  \begin{align}
+    z_i^2
+    &= (y_i - \braket{\hat{\theta}_c, x_i})^2 
+    \leq 2 ((y_i - \braket{\theta^*, x_i})^2+ \braket{\hat\theta_c - \theta^*, x_i}^2)
+  \end{align}
+  the first term has been done and the second is $\leq \frac{\sigma^2}{1 - \kappa -\eps} \frac{1}{n} \sum_{i \in S} c_i \braket{x_i, v}^2$,
+  so our goal is to bound
+  \begin{align}
+    \underbrace{\frac{1}{n}  \sum_{i \in S} \braket{\hat\theta_c - \theta^*, x_i}^2}_{(1-\eps) (\text{excess predictive loss} \coloneqq R)}
+    &= \frac{1 - \eps}{\lvert S \rvert} (\theta^* - \hat\theta_c) \underbrace{\sum_{i \in S} x_i x_i^\top}_{\text{second moment matrix}} (\theta^* - \hat\theta_c)
+  \end{align}
+  By Cauchy-Schwarz and hypercontractivity (applied twice to move back down to $2$nd powers)
+  \begin{align}
+    \frac{1}{n} \sum_{i \in S} c_i (y_i - \braket{\hat\theta_c, x_i})^2
+    &\leq \frac{\sigma^2}{1 - \kappa \eps} \left( \frac{1}{n} \sum_{i \in S} c_i \braket{x_i, v}^2 \right)
+    + \frac{1}{n}  \sum_{i \in S} c_i \braket{\hat\theta_c - \theta^*, x_i}^2 \braket{x_i, v}^2
+  \end{align}
+  Bounding the RHS terms individually
+  \begin{align}
+    \frac{1}{n}  \sum_{i \in S} c_i \braket{\hat\theta_c - \theta^*, x_i}^2 \braket{x_i, v}^2
+    &\leq \sqrt{
+      \left(\frac{1}{n} \sum_{i \in S} c_i \braket{\hat\theta_c - \theta^*, x_i}^4\right)
+      \left(\frac{1}{n} \sum_{i \in S} c_i \braket{x_i, v}^4\right)
+    }\\
+    &\leq \frac{\kappa}{1 - \kappa\eps} 
+    \underbrace{\left(\frac{1}{n} \sum_{i \in S} c_i \braket{\hat\theta_c - \theta^*, x_i}^2\right)}_{(1 - \eps) R}
+      \left(\frac{1}{n} \sum_{i \in S} c_i \braket{x_i, v}^2\right) \\
+    \frac{1}{n} \sum_{i \in S} c_i (y_i - \braket{\hat\theta_c, x_i})^2 \braket{x_i, v}^2
+    &\leq 
+    \underbrace{\left( \frac{\sigma^2}{1 - \kappa \eps} + \frac{(1 - \eps) \kappa R}{1 - \kappa \eps} \right)}_{\leq \sigma^2 / 2}
+    \left( \frac{1}{n} \sum_{i \in S} c_i \braket{x_i, v}^2 \right)
+  \end{align}
+
+  We can show
+  \begin{align}
+    R \leq \frac{10 \eps \tilde{\sigma}_c^2}{1 - \eps} 
+  \end{align}
+  if $\eps \leq \frac{1}{8}$ and $\frac{\eps (\tilde{\kappa} - 1)}{3 \kappa} \leq \frac{1}{6}$.
+  So we are happy if
+  \begin{align}
+    \frac{\sigma^2}{1 - \kappa \eps} + \frac{10 \kappa \eps \tilde{\sigma}^2}{1 - \kappa \eps}
+    \leq \frac{\tilde{\sigma}^2}{2} 
+  \end{align}
+  Doing the algebra, we will find that this holds if $\tilde{\sigma}^2 \geq 256 \sigma^2$.
+\end{proof}

@@ -76,8 +76,48 @@ noise hypothesis:
   = S_p^{-1/2} \ex[X Z^2 X^\top] S_p^{-1/2} \\
   &\leq \sigma^2 S_p^{-1/2} \ex[X X^\top] S_p^{-1/2}
   = \sigma^2 I
-\end{align} 
+\end{align}
 
 \subsection{Linear Classification}
 
+Let $(X,Y) \in \RR^d \times \{\pm 1\}$. We can consider the
+\emph{classification loss}
+\begin{align}
+  L(p, \theta) = \Pr_p[Y \neq \sgn\braket{\theta, X}]
+\end{align}
+or \emph{hinge loss}
+\begin{align}
+  B(p, \theta) = \ex_{X, y} \max(1 - \braket{\theta, x}y, 0)
+\end{align}
 
+\begin{proposition}
+  Suppose $p$ satisfies
+  \begin{enumerate}
+    \item $\ex_{(X,Y) \sim p} \max (1 - y \braket{\theta^*, x}, 0) \leq (1 - \eps) \rho_1$
+    \item For all $\theta$ satisfying
+      \begin{align}
+        \Pr[y \braket{\theta, X} \leq \frac{1}{2}] \leq \eps + 2(1-\eps) \rho_1
+      \end{align}
+      we have
+      \begin{align}
+        \Pr[y \braket{\theta, X} \leq 0] \leq \rho_2
+      \end{align}
+  \end{enumerate}
+  Then $p$ is $(\rho_1, \rho-2, \eps)$ resilient.
+\end{proposition}
+\todo{which loss}?
+
+\begin{proof}
+  HW \todo{add when done}
+\end{proof}
+
+\begin{remark}
+  The second condition is a statement about the rate of tail decay.
+  It says that once the tail starts to decay, then it falls off very fast.
+
+  Figure 10.15.XX
+
+  Compare this to bounded variance, which was stronger and required the probability
+  mass to be tightly concentrated (i.e.\ tails both fall off very fast and start
+  to fall off close to the mean).
+\end{remark}
