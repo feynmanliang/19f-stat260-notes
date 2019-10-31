@@ -1,0 +1,118 @@
+\section{10/23/2019 and 10/25/2019}
+
+Was travelling, see course notes for generalizing from $D = \TV$
+to Wasserstein distances (need $\eps$-deletion $\to$ $\eps$-``friendly''
+and a generalized midpoint lemma).
+
+\section{10/29/2019}
+
+\subsection{Setting for test-time robustness (classification)}
+\begin{itemize}
+  \item Train: $(x_1, y_1), \ldots, (x_n, y_n) \sim p$,
+    $y \in Y$ ($Y = \{\pm 1\}$ binary, $Y = [K]$ multiclass)
+  \item Test: $(x, y) \sim p$. Observe $\bar{x}$ such that
+    $d(x, \bar{x}) \leq \eps$
+    (before $D(\tilde{p}, p^*) \leq \eps$)
+  \item Goal: Predict $y$ from $\bar{x}$
+\end{itemize}
+
+For various $\ell(\theta; x, y)$, e.g.:
+\begin{itemize}
+  \item $0/1$-loss, measure accuracy of classifier
+  \item log-loss / hinge-loss: measure ``margin'' of classification
+\end{itemize}
+We were previously using a (non-robust) loss
+\begin{align}
+  L(p, \theta) &= \ex_{(x,y) \sim p}[ \ell(\theta; x, y) ]
+\end{align}
+Consider instead a \emph{robust loss}
+\begin{align}
+  L(p, \theta) &= \ex_{(x,y) \sim p} \left[
+    \sup_{\bar{x} : d(x,\bar{x}) \leq \eps} \ell(\theta; \bar{x}, y)
+  \right]
+\end{align}
+
+We care about this kind of loss because most models are very non-robust
+(Figure 10.29.1: a $1/128$ perturbation in $\ell_\infty$
+causes a DNN to become very confused)
+
+\subsubsection{Relation to train-time robustness}
+
+Before we thought of the training distribution $\tilde{p}$
+as corrupted, and want to ensure performance on the test-time
+distribution $p^*$.
+Here, we think of the train distribution $p$ as nice and the
+test distribution $\bar{p}$ as corrupted.
+
+For classification, we can formalize test-time corruption in terms of
+discrepancy as follows:
+$D(\tilde{p}, q) \leq \eps$ if there exists a coupling $\pi$ from
+$\tilde{p}$ to $q$ such that for $(x,y), (x',y') \sim \pi$
+if $y = y'$ then $d(x,x') \leq \eps$ almost surely.
+
+This generalizes Wasserstein distance
+\begin{align}
+  w_c(p, q) &= \inf_{\pi \in \Pi} \ex_\pi[c(x,x')^k]^{1/k}
+\end{align}
+
+Notice here that $\cG$ is not needed.
+
+\subsubsection{Natural algorithm}%
+
+A natural algorithm is to just minimize empirical loss.
+For $(x_i, y_i) \simiid p$, fit our model by
+\begin{align}
+  \min_\theta
+  \rho(\theta)
+  + \frac{1}{n}  \sum_{i=1}^n
+  \sup_{\bar{x}_i : d(x_i, \bar{x}_i) \leq \eps}
+  \ell(\theta; \bar{x}_i, y_i)
+\end{align}
+
+A couple of issues arise:
+\begin{enumerate}
+  \item $\sup$ over $\bar{x}$
+  \item Generalizataion
+  \item What if $d$ wasn't what you cared about?
+\end{enumerate}
+
+Some examples of different $d$ we can care about.
+
+Figure 10.29.2
+
+\begin{itemize}
+  \item $\ell_\infty$ : each pixel $\leq \eps$
+  \item $\ell_1$: total change $\leq \eps$
+  \item $\ell_2$
+  \item JPEG: $\|JPEG(x) - JPEG(\bar{x})\|_2 \leq \eps$
+  \item $\bar{x}$ obtained from $x$ via elastic warping of size $\eps$
+  \item Fog
+  \item Snow
+\end{itemize}
+
+\subsection{Sup over $\bar{x}$}%
+
+The robust loss requires us to compute
+\begin{align}
+  \sup_{\bar{x} : d(x,\bar{x}) \leq \eps} \ell(\theta; \bar{x}, y)
+\end{align}
+Unfortunately, $\ell$ is usually not convex in $\bar{x}$
+and is hard to optimize.
+
+One strategy is to heuristically maximize $\bar{x}$ by just running a bunch
+of gradient steps.
+\begin{align}
+  \ell_{\text{robust}} &= \sup_{\bar{x}} \ell(\theta; \bar{x}, y) \\
+  \ell_{\text{proxy}} &= \text{heuristic max} \\
+  \ell_{\text{proxy}} &\leq \ell_{\text{robust}}
+\end{align}
+
+This is not a good idea: Figure 10.29.3: minimizing $\theta$ over
+the proxy will choose points where the proxy is not a good approximation
+to $\ell_{\text{robust}}$
+
+
+
+
+
+
