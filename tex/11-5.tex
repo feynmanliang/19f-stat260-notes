@@ -1,0 +1,142 @@
+\section{11/5/2019}
+
+\subsection{Randomized smoothing}%
+
+\begin{align}
+  f_\theta : \cX \to \Delta_k = [0,1]^k
+\end{align}
+Noise $\pi$, define \emph{smoothed classifier}
+\begin{align}
+  \bar{f}_\theta(x) = \ex_{\delta \sim \pi} f_\theta(x+\delta)
+\end{align}
+Approximate with error $\eps$ in $\ell_\infty$ by drawing $O(1/\eps^{2})$
+samples from $\p$, $O(\log k / \eps^2)$ for $\ell_2$?
+
+\begin{proposition}
+  Let $\pi_x$ be distribution of $x + \delta$.
+  For any inputs $x,x'$
+  \begin{align}
+	\|\bar{f}_\theta(x) - \bar{f}_\theta(x')\|_\inty\leq \TV(\pi_x, \pi_{x'})
+  \end{align}
+  In particular, if $\sup_{\bar{x} : d(x,\bar{x}) \leq \eps} \TV(\pi_x, \pi_{\bar{x}}) \leq \tau$ and correct class $\bar{f}_\theta(x) \geq 2 \tau$
+  larger than any incorrect class, i.e. $y \in [k]$ and actual class $y$
+  then for all $y' \neq y$
+  \begin{align}
+    \bar{f}_\theta(x)_y \geq 2 \tau + \bar{f}_\theta(x)_{y'}
+  \end{align}
+  then $\bar{f}_\theta$ is \emph{adversarially robust} at $x$.
+\end{proposition}
+
+\begin{proof}
+  \begin{align}
+    \lvert \bar{f}_\theta(x)_j - \bar{f}_\theta(x')_j \rvert
+    &= \lvert \ex_{z \sim \pi_x}[ f_\theta (z)_j ] - \ex_{z \sim \pi_{x'}}[f_\theta(z)_j]\rvert \leq \TV(\pi_x, \pi_{x'}) \\
+    \TV(p,q) &= \sup_{f : \cX \to [0,1]} \lvert \ex_p[f] - \ex_q[f] \rvert
+  \end{align}
+  Remaining questions:
+  \begin{itemize}
+    \item Pick $\pi$.
+    \item How to train $\bar{f}_\theta$.
+  \end{itemize}
+
+  Let $d(x,\bar{x}) = \| x- \bar{x} \|_2$, $\pi = N(0, \sigma^2 I)$. Then
+  \begin{align}
+    \sup_{\|x - x'\|_2 \leq \eps}
+    \TV(\pi_x, \pi_{x'})
+    &= \sup_{\|x - x'\|_2 \leq \eps}
+    \TV(N(x,\sigma^2 I), N(x', \sigma^2 I)) \\
+    &= \TV(N(-\eps/2, \sigma^2), N(\eps/2, \sigma^2)) \\
+    &= \Phi(\eps/2\sigma) - \Phi(-\eps/2\sigma)
+  \end{align}
+  where $\Phi$ is the normal CDf.
+
+  Figure 11.5.1
+
+  \begin{align}
+    \int_{-\eps/2}^\infty p_\sigma(x) dx
+    - \int_{\eps/2}^\infty p_\sigma(x) dx
+    &= \Phi(\eps/2\sigma) - \Phi(-\eps/2\sigma)
+  \end{align}
+  We previously \todo{where?} showed the above quantity
+  $\Theta(\eps/\sigma)$ if $\eps/sigma$ is small.
+
+  Similar to calculation in linear case: need lots of noise
+  ($\sigma \sqrt{d}$ vs $\sigma$)
+
+  How to do training? Traditionally to get $f_\theta$ we
+  \begin{align}
+    \min_\theta \ex_{(x,y) \sim p}[ -\log f_\theta(x)_y]
+  \end{align}
+  For this randomized smoothing classifier, could consider
+  \begin{align}
+    \min_\theta \ex_{(x,y) \sim p}[ -\log \bar{f}_\theta(x)_y]
+  \end{align}
+  But this is not the most convenient object. To see why,
+  Fisher scoring requires computing
+  \begin{align}
+    \nabla_\theta [ \log \bar{f}_\theta(x)_y ]
+    &= \frac{1}{\bar{f}_\theta(x)_y} \nabla_\theta \bar{f}_\theta(x)_y \\
+    &= \frac{1}{\bar{f}_\theta(x)_y} \nabla_\theta \ex_{\delta \sim \pi}[ f_\theta(x+\delta)_y] \\
+    &= \frac{1}{\bar{f}_\theta(x)_y} \ex_{\delta \sim \pi}[
+    \nabla_\theta f_\theta(x+\delta)_y
+    ] \\
+    &= \frac{1}{\bar{f}_\theta(x)_y} \ex_{\delta \sim \pi}[
+    f_\theta(x+\delta)_y
+    \nabla_\theta \log f_\theta(x+\delta)_y
+    ] \\
+    &= \ex_{\delta \sim \pi}[
+    \frac{f_\theta(x+\delta)_y}{\bar{f}_\theta(x)_y}
+    \nabla_\theta \log f_\theta(x+\delta)_y
+    ]
+  \end{align}
+  Notice $\nabla_\theta \log f_\theta(x+\delta)_y$, the typical gradient term
+  in maximum likelihood. Think of
+  $\frac{f_\theta(x+\delta)_y}{\bar{f}_\theta(x)_y}$ as an importance weight.
+
+  Another way we could have generalized the loss is
+  \begin{align}
+    -\log \bar{f}_\theta(x)_y
+    &= -\log \ex_\delta[f_\theta(x+\delta)_y]
+  \end{align}
+  resulting in
+  \begin{align}
+    \ex_{(x,y) \sim p} \ex_\delta[-\log f_\theta(x+\delta)_y]
+  \end{align}
+  which is saying that \emph{all} of the $\delta$ have high probability
+  of the true label. The derivative is much nicer:
+  \begin{align}
+    \nabla_\theta
+    \ex_{(x,y) \sim p} \ex_\delta[-\log f_\theta(x+\delta)_y]
+    &=
+    \ex_{(x,y) \sim p} \ex_\delta[\nabla_\theta[-\log f_\theta(x+\delta)_y]]
+  \end{align}
+  So to train, we
+  (1) sample a training point $(x,y)$ then
+  (2) sample a pertubation $\delta$ and use
+  the gradient at $-\log f_\theta(x+\delta)_y$.
+  By Jension's, this is also an upper bound on the previous.
+\end{proof}
+
+\subsection{Covariate shifts}
+
+Training $\tilde{p}$ and test $p^*$,
+\emph{covariate shift} is an assumption
+\begin{align}
+  \tilde{p}(y \mid x) = p^*(y \mid x)
+\end{align}
+for all $x, y$.
+
+It says that ``with infinite data I'm fine'' because
+\begin{align}
+  \tilde{p}(x,y) \to &\tilde{p}(y \mid x) \\
+  p^*(x) \quad& p^*(y \mid x)
+\end{align}
+and $p^*(y \mid x)$ is what you need to predict well.
+
+Two issues:
+\begin{itemize}
+  \item Extrapolating to low probaility regions under $p^*$: Figure 11.5.2.
+    Will address with importance weighting.
+  \item Handling model mis-specification.
+
+\end{itemize}

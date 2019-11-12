@@ -1,0 +1,175 @@
+\section{10/31/2019}
+
+\subsection{Certified adversarial training}
+
+\textbf{Recap last time}
+\begin{itemize}
+  \item Adversarial robustness / fragility
+    \begin{itemize}
+      \item Robustness is hard to evaluate: most papers are wrong, follow best practices
+      \item Robustness seems to require more data
+      \item Random vs adversarial noise are very different in high dimensions
+      \item Robustness under different perturbation types partially
+	(but doesn't completely) transfer
+    \end{itemize}
+\end{itemize}
+
+Today we will resolve this first issue that robustness is hard to evaluate,
+using a method called \emph{certified adversarial training}.
+
+Recall that our goal is to minimize the robust loss
+\begin{align}
+  \ex_{x,y}\left[
+    \underbrace{\sup_{\bar{x} : d(x,\bar{x}) \leq \eps} \ell(\theta; \bar{x}, y)}_{=\ell_{\text{robust}}(\theta; \bar{x}, y)}
+  \right]
+\end{align}
+We will (somehow) obtain $\ell_{\text{cert}} \geq \ell_{\text{robust}}$, after
+which we can minimize $\ex \ell_{\text{cert}}$.
+
+To start: why is an upper bound on $\ell_{\text{robust}}$ better
+than a lower bound (e.g. $\ell_{\text{proxy}}$ from before)?
+
+Figure 10.31.1: minimization in $\theta$ of an upper bound prefers spots where
+the upper bound is a good approximation, whereas it favors regions
+where the lower bound is bad!
+
+What should we do if we know $\ell_{\text{robust}}$?
+If $d$ and $\ell$ are sufficiently nice, then by
+the \emph{envelope theorem}
+\begin{align}
+  \nabla_\theta \sup_{\bar{x} : d(x,\bar{x}) \leq \eps} \ell(\theta; \bar{x}, y)
+  &=
+  \nabla_\theta \ell(\theta; x^*, y) \vert_{x^*=\argmax_{\bar{x} : d(x,\bar{x}) \leq \eps} \ell(\theta; \bar{x}, y)}
+\end{align}
+Sufficient conditions include $B = \{d(x,\bar{x}) \leq \eps\}$ compact and $\ell$ continuously
+differentiable in $(\theta, \bar{x})$. More generally, see Danskin's theorem
+(subgradient = convex hull of gradients of argmaxes).
+
+\subsubsection{Adversarial training}
+
+The previous envelope theorem says that the gradient of the worst case loss
+is equal to the gradient of the loss at the worst case example $x^*$.
+This motivates adversarial training:
+\begin{itemize}
+  \item Approximately optimize over $\bar{x}$
+  \item Take step in direction $\nabla_\theta \ell(\theta; \bar{x}, y)$
+\end{itemize}
+
+This is a continuation of last time's $\ell_{\text{proxy}}$, which
+is an under-approximation.
+
+\subsubsection{Certified adversarial training}
+
+Consider a feedforward neural network
+\begin{align}
+  z^{(i)} &= A^{(i-1)} x^{(i-1)} \\
+  x^{(i)} &= \sigma(z^{(i)})
+\end{align}
+where $\sigma(z) = \max(z,0)$ is ReLU activation and $x^{(0)} = x$ is the
+input. Consider cross-entropy loss
+\begin{align}
+  \ell(\theta; x^{(0)}, y) = \log \left(\sum_{y' \in [k]} e^{z^{(L)}_{y'}}\right) - z^{(L)}_{y}
+\end{align}
+with $y \in [k]$.
+
+\textbf{Goal}: Fix $y$ and $y'$. Upper bound (at some fixed $\theta = (A^{(i)})_{i \in [L-1]}$)
+\begin{align}
+  \max_{x^{(i)}, z^{(i)}, i \in [L]} 
+  &z^{(L)}_{y'} - z^{(L)}_y \\
+  \text{st }
+  &d(x,x^{(0)}) \leq \eps \\
+  &z^{(i)} = A^{(i-1)}x^{(i-1)} \quad\forall i \\
+  &x^{(i)} = \max(z^{(i)}, 0) \quad\forall i
+\end{align}
+
+In the case $d = \ell_{\infty}$, we can rewrite $d(x,x^{(0)}) \leq \eps$
+as linear inequalities
+\begin{align}
+  x^{(0)}_j &\leq x_j + \eps  \\
+  x^{(0)}_j &\geq x_j - \eps
+\end{align}
+for all $j$. Similarly, we have linear equalities
+\begin{align}
+  z^{(i)} = A^{(i-1)} x^{(i-1)}
+\end{align}
+The problematic constraint is the equality constraint $x^{(i)} = \max(z^{(i)}, 0)$,
+which is not a convex region. How do we write this as something convex?
+
+Figure 10.31.2
+
+One way is to relax to inequality $x \geq \max(z,0)$, but this is not great because
+we could have $x \to \infty$.
+
+\textbf{Approach 1: LP relaxation}. Suppose we knew $z \in [l, u]$.
+Then, we can consider $x \geq z$, $x \geq 0$, $x \leq \frac{z-l}{u-l}u$
+
+Figure 10.31.3
+
+This gives an LP we can solve to get a bound for each layer $i \in [L]$.
+
+While not very efficient, there are speed-up tricks:
+\begin{itemize}
+  \item Take the dual
+  \item Guess good variables for intermediate layers
+  \item Take gradient descent tsteps in dual instead of solving all the way
+  \item Train ``verifier network'' that guesses dual variables
+\end{itemize}
+
+\textbf{Approach 2: SDP}. Again focus on $x = \max(z,0)$. Rewrite as
+system of polynomial constraints
+\begin{align}
+  x &\geq z \\
+  x &\geq 0 \\
+  x(x-z) &= 0
+\end{align}
+Trick for Grothendieck
+\begin{align}
+  M &= \begin{bmatrix}
+    1 & x & z \\
+    x & x^2 & xz \\
+    z & xz & z^2
+  \end{bmatrix}
+  = \begin{bmatrix}
+    1 & m_x & m_z \\
+    m_x & m_{xx} & m_{xz} \\
+    m_{z} & m_{xz} & m_{zz}
+  \end{bmatrix}
+\end{align}
+Our constraints are equivalent to
+\begin{align}
+  m_x &\geq m_z \\
+  m_x &\geq 0 \\
+  m_{xx} &= m_{xz} \\
+  M &\succeq 0 \\
+  \rank(M) &= 1
+\end{align}
+We also know $M \succeq 0$, because it's an outer product of a vector
+with itself.
+
+Recall Grothendieck, which rewrote quadratic forms
+\begin{align}
+  \max&y^\top \Sigma y \\
+  \text{st }& y \in \{\pm 1\}^m \\
+  &M = y y^\top
+\end{align}
+as big SDPs
+\begin{align}
+  \max&\braket{M, \Sigma} \\
+  \text{st } & M \succeq 0 \\
+  &\diag(M) = 1
+\end{align}
+
+Decision variables $m^{(i)}$, $m^{(i,i)}$, $m^{(i,i-1)}$
+
+Constraints
+\begin{align}
+  m^{(i)} &\geq 0 \\
+  m^{(i)} &\geq A^{(i-1)} m^{(i-1)} \\
+  \diag(m^{(i,i)} - m^{(i,i-1)} (A^{(i-1)})^\top) &= 0 \\
+  \begin{bmatrix}
+    1 & (m^{(i-1)})^\top & m^{(i)}^\top \\
+    m^{(i-1)} & m^{(i-1,i-1)} & (m^{(i,i-1)})^\top \\
+    m^{(i)} & m^{(i,i-1)} & m^{(i,i)}
+  \end{bmatrix}
+						  &\succeq 0
+\end{align}

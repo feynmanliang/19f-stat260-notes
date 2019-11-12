@@ -1,0 +1,228 @@
+\section{11/7/2019}
+
+\subsection{Propensity weighting}
+
+Here we consider covariate shifts and will use propensity score importance
+weighting to handle extrapolation to low probability regions under $p^*$.
+
+For now asusme $p^*$ and $\tilde{p}$ known, $\ell(\theta; x,y)$ squared loss
+$(y - \braket{x,\theta})^2$ or $\log(1+\exp(-y \braket{\theta,x})$.
+
+By the covariate shift assumption
+\begin{align}
+  \ex_{(x,y) \sim p^*}[\ell(\theta; x,y)]
+  &= \ex_{(x,y) \sim \tilde{p}} \left[ \frac{p^*(x,y)}{\tilde{p}(x,y)} \ell(\theta; x,y) \right]
+  = \ex_{(x,y) \sim \tilde{p}} \left[
+    \frac{p^*(x) \cancel{p^*(y \mid x)}}{\tilde{p}(x) \cancel{\tilde{p}(y \mid x)}} \ell(\theta; x,y)
+  \right]
+\end{align}
+From which we see that the loss under $p^*$ is equal to
+the \emph{propensity weighted loss}
+\begin{align}
+  \ex_{(x,y) \sim \tilde{p}} \left[ \frac{p^*(x)}{\tilde{p}(x)} \ell(\theta; x,y) \right]
+  = \frac{1}{n}  \sum_{i=1}^n \frac{p^*(x_i)}{\tilde{p}(x_i)} \ell(\theta; x_i, y_i)
+\end{align}
+where the examples $(x,y) \sim \tilde{p}$ are from the training distribution.
+
+Few concerns:
+\begin{enumerate}
+  \item Variance
+  \item How to get $p^*(x)$ and $\tilde{p}(x)$?
+  \item Finite-sample corrections for learning $\theta$ (relates to first point)
+\end{enumerate}
+
+Looking at the variance
+\begin{align}
+  \Var_{\tilde{p}}\left[
+    \frac{p^*(x)}{\tilde{p}(x)} \ell(\theta; x,y)
+  \right]
+  &= \ex_{\tilde{p}}\left[
+    \frac{p^*(x)^2}{\tilde{p}(x)^2} \ell(\theta; x,y)^2
+    \right] - \underbrace{\ex_{\tilde{p}}\left[
+      \frac{p^*(x)}{\tilde{p}(x)} \ell(\theta; x, y)
+    \right]^2}_{\ex_{p^*}[\ell(\theta; x,y)]^2 \leq 0}
+\end{align}
+Assume $\ell(\theta; x, y) \leq B$. Then
+\begin{align}
+  \ex_{\tilde{p}}\left[
+    \frac{p^*(x)^2}{\tilde{p}(x)^2} \ell(\theta; x,y)^2
+  \right]
+  &= \ex_{\tilde{p}}\left[
+    \frac{p^*(x)^2}{\tilde{p}(x)^2}
+  \right] B^2
+  = \left( D_{\chi^2}(\tilde{p} || p^*) + 1\right)B^2
+\end{align}
+So we see that the variance is controlled by the chi-square divergence.
+
+\begin{definition}[Chi-square divergence]
+  The \emph{chi-square divergence}
+  \begin{align}
+    D_{\chi^2}(\tilde{p} || p^*)
+  &= \int \frac{p^*(x)^2}{\tilde{p}(x)} dx - 1
+\end{align}
+\end{definition}
+
+\subsubsection{Properties of chi-square}
+
+\begin{proposition}[KL lower bounds chi-square]
+  \begin{align}
+    D_{\chi^2}(p||q) &\geq KL(q||p)
+  \end{align}
+\end{proposition}
+
+\begin{proof}
+  \begin{align}
+    \int q(x) \log \frac{q(x)}{p(x)} dx
+    &= \int q(x)\left( \log q(x) - \log p(x) \right) dx
+    \leq \int \frac{q(x)}{p(x)} \left( q(x) - p(x) \right) dx
+  \end{align}
+\end{proof}
+
+Similar to how KL-divergence satisfies a distributivity across
+product measures:
+\begin{proposition}[KL of products]
+  \begin{align}
+    KL\left( \prod_{i=1}^n p_i || \prod_{i=1}^n q_i\right)
+  &= \sum_i KL(p_i || q_i)
+  \end{align}
+\end{proposition}
+
+\begin{proof}
+  \begin{align}
+    \int \prod^n p_i(x_i) \log \frac{\prod^n p_i(x_i)}{\prod^n q_i(x_i)} \prod^n dx_i
+    &= \int \prod^n p_i(x_i) \left(
+      \sum^n \log \frac{p_i}{q_i}
+    \right) \prod^n dx_i \\
+    &= \sum_i \int p_i(x_i) \log \frac{p_i(x_i)}{q_i(x_i)} \\
+    &= \sum_i D_{KL}(p_i || q_i)
+  \end{align}
+\end{proof}
+
+A similar property holds for $D_{\chi^2}$, though we recover
+a product rather than a sum:
+\begin{proposition}[Chi-square divergence of products]
+  \begin{align}
+    D_{\chi^2}\left( \prod_{i=1}^n p_i || \prod_{i=1}^n q_i\right)
+    &= \prod_i (1 + D_{\chi^2}(p_i || q_i)) - 1
+  \end{align}
+\end{proposition}
+
+\begin{proof}
+  \begin{align}
+    D_{\chi^2}(\prod^n p_i || \prod^N q_i)
+  &= \int \frac{\prod_i p_i(x_i)^2}{\prod_i q_i(x_i)} \prod^n dx_i - 1 \\
+  &= \left( \prod_{i=1}^n \int \frac{p_i(x_i)^2}{q_i(x_i)} dx \right) - 1 \\
+  &= \left( \prod_{i=1}^n D_{\chi^2}(q_i || p_i) \right) + 1
+\end{align}
+\end{proof}
+
+\begin{proposition}[Chi-square divergence for Gaussians]
+  \begin{align}
+    D_{\chi^2}(N(\mu, I), N(\mu', I))
+    &= \exp(\| \mu - \mu' \|_2^2)
+  \end{align}
+\end{proposition}
+
+\begin{proof}
+  Let $Z$ be the normalization constant.
+  \begin{align}
+    \frac{1}{Z} \int \frac{\exp(-\|x - \mu\|_2^2)}{\exp(-\frac{1}{2} \|x - \mu'\|_2^2)} dx
+    &= \frac{1}{Z} \int \exp\left(
+      - \frac{1}{2} \|x\|_2^2
+      + \braket{2 \mu - \mu', x}
+      - \|\mu\|_2^2 + \frac{1}{2} \|\mu'\|_2^2
+    \right) \\
+    &= \frac{1}{Z} \int \exp\left(
+      -\frac{1}{2} \|x - (2 \mu - \mu')\|_2^2
+      + \frac{1}{2} \|2 \mu - \mu'\|_2^2
+      - \|\mu\|_2^2 + \frac{1}{2} \|\mu'\|_2^2
+    \right) \\
+    &= \exp\left(
+      \frac{1}{2} \|2\mu - \mu'\|_2^2
+      - \|\mu\|_2^2 + \frac{1}{2}  \|\mu'\|_2^2
+    \right) \\
+    &= \exp\left(
+      \|\mu\|_2^2 + \|\mu'\|_2^62 - 2 \braket{\mu, \mu'}
+    \right) \\
+    &= \exp(\|\mu - \mu'\|_2^2)
+  \end{align}
+\end{proof}
+
+\subsection{Causal inference}%
+
+Suppose $X$ were patients, $t \in \{0,1}$ an indicator for
+whether treatment was given, and $Y$ the outcome.
+
+We want to estimate the \emph{treatment effect}
+\begin{align}
+  \ex[Y \mid t=1] - \ex[y \mid t=0]
+\end{align}
+This would be easy if we could perform randomized trials, but
+in historical data treatment may only be given to certain $X$.
+
+To handle this, consider potential outcomes $Y(0)$ and $Y(1)$
+for a patient $X$ which represent the outcome that would have
+happened if the patient did / didn't receive treatment.
+
+We make an \emph{unconfoundedness assumption}
+\begin{align}
+  Y(0), Y(1) \perp t \mid X
+\end{align}
+
+Reduction to covariate shifts:
+let $\tilde{p}(x, t, y(t))$ be the observational distribution
+and
+\begin{align}
+  p_1^*(x,t,y(t))
+  &= p^*(x) \underbrace{p(t \mid x)}_{\ind\{t=1\}} p^*(y(t) \mid x, t) \\
+  p_0^*(x,t,y(t))
+  &= p^*(x) \underbrace{p(t \mid x)}_{1-\ind\{t=1\}} p^*(y(t) \mid x, t)
+\end{align}
+two distributions where everyone did / didn't get the treatment.
+
+\begin{proposition}
+  \begin{align}
+    \ex[Y(1) - Y(0)]
+    &= \ex_{p_1^*}[Y(t)] - \ex_{p_0^*}[Y(t)]
+  \end{align}
+\end{proposition}
+
+\begin{proposition}
+  $\tilde{p}$ and $p_1^*$ satisfy covariate $(x,t)$ shift, that is
+  \begin{align}
+    \tilde{p}(y(0), y(1) \mid x, t)
+    &= p^*(y(0), y(1) \mid x, t)
+  \end{align}
+\end{proposition}
+
+\begin{align}
+  \ex_{p_1^*}[Y(t)]
+  &= \ex_{\tilde{p}}\left[
+    \frac{p_1^*(x,t)}{\tilde{p}(x,t)} Y(t)
+  \right] \\
+  &= \ex_{\tilde{p}}\left[
+    \cancel{\frac{p_1^*(x)}{\tilde{p}(x)}} \frac{p^*_1(t \mid x)}{\tilde{p}(t\mid x)} Y(t)
+  \right] \\
+  &= \ex_{\tilde{p}}\left[
+      \frac{\ind\{t=1\}}{\tilde{p}(t=1 \mid x)} Y(1)
+    \right] \\
+  \ex_{p_0^*}[ Y(0) ]
+  &= \ex_{\tilde{p}}\left[
+    \frac{\ind\{t=0\}}{p(t=0 \mid x)} Y(0)
+  \right] \\
+  \ex_{p_1^*}[Y(t)] - \ex_{p_0^*}[ Y(t) ]
+  &= \ex_{\tilde{p}}\left[
+    \left( \frac{\ind\{t=1\}}{\tilde{p}(t=1 \mid x)} - \frac{\ind\{t=0\}}{\tilde{p}(t=0 \mid x)} \right)
+    Y(t)
+  \right] \\
+  &\approx \frac{1}{n}  \sum_{i=1}^n y_i \left(
+  \frac{\ind\{t=1\}}{\tilde{p}(t=1 \mid x)}
+  - \frac{\ind\{t=0\}}{\tilde{p}(t=0 \mid x)}
+\right)
+\end{align}
+We can interpret the effect of this as doing a reweighting which ``undoes''
+the propensity to treat.
+
+This is called \emph{inverse propensity weighting}, so we see that
+domain adaptation under covariate shifts and inverse propensity weighting
+are the same thing.
