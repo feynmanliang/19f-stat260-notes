@@ -1,0 +1,189 @@
+\section{11/12/2019}
+
+\begin{itemize}
+  \item Last time
+    \begin{itemize}
+      \item Domain adaptation and covariate shifts
+      \item Propensity weighting: works if $D_{\chi^2}$ small
+      \item Causal inference: inverse propensity weighting (IPV)
+    \end{itemize}
+  \item This time
+    \begin{itemize}
+    	\item Review IPW
+	\item Better estimator: doubly-robust estimator
+	  \begin{itemize}
+	  	\item Start w/ model
+	  \end{itemize}
+	\item Semi-parametric estimator
+    \end{itemize}
+\end{itemize}
+
+Recall the causal inference setup: observe $(X,T, Y(T))$.
+Randomized trials have $\Pr(T=1 \mid X) = 1/2$, but more available
+observational settings often have $P(T=1 \mid X)$ depends on $X$.
+
+To deal with this, we make an \emph{unconfoundedness assumption}:
+$T \perp Y \mid X$. As a result, the \emph{average treatment effect}
+\begin{align}
+  \ex[Y(1) - Y(0)]
+  &= \ex_X[\ex[Y(1) \mid X] - \ex[Y(0) \mid X]] \\
+  &= \ex_X[\ex[Y(1) \mid T=1, X] - \ex[Y(0) \mid T=0, X]]
+\end{align}
+This is nice because we only ever observe one of the two potential
+outcomes: $(Y(1), T=1)$ or $(Y(0), T=0)$.
+Further expanding these terms reveals:
+\begin{align}
+  \ex_{X \sim \tilde{p}} \ex_{\tilde{p}}[ Y(1) \mid T=1, X]
+  &= \ex_{p_1^*}[\ex[ Y(1) \mid X]]
+  = \ex_{p_1^*}[Y(1)]\\
+  p_1^*(x, t, y) &= \tilde{p}(x) \ind\{t=1\} \tilde{p}(y \mid x, t=1)
+\end{align}
+where we have extracted the propensity score reweighted
+distributions $p_1^*$ and $p_0^*$.
+
+Importance sampling allows us to go from $\tilde{p}$ to $p_1^*$,
+giving inverse propensity weighting (IPW):
+\begin{align}
+  \ex_{p_1^*}[Y(1)] = \ex_{\tilde{p}}\left[
+    \frac{p_2^*(x,t)}{\tilde{p}(x,t)} Y(1)
+  \right]
+  &= \ex_{\tilde{p}}\left[
+    \frac{\ind\{t=1\}}{\tilde{p}(t=1 \mid X)} Y(1)
+  \right] \\
+  \ex_{\tilde{p}}\left[
+    Y(1) - Y(0)
+  \right] &= \ex_{\tilde{p}} \left[
+  \left( \frac{\ind\{T=1\}}{\tilde{p}(t=1 \mid X)}  - \frac{\ind\{T=0\}}{\tilde{p}(t=0 \mid X} \right)
+  Y(T)
+  \right]
+\end{align}
+All of the terms on the RHS are observable quantities, making causal
+inference tractable.
+
+\begin{definition}
+  The \emph{IPW estimator} of ATE is
+  \begin{align}
+    \ex[Y(1) - Y(0)]
+    &= \ex\left[\left(
+	\frac{\ind\{T=1\}}{\tilde{p}(T=1 \mid X)}
+	- \frac{\ind\{T=0\}}{\itlde{p}(T=0 \mid X)}
+      \right) Y(T)
+    \right]
+  \end{align}
+\end{definition}
+
+Some issues for this estimator are
+\begin{itemize}
+  \item High variance: denominator could be small
+  \item Requires knowing $\tilde{p}$ in advance; not robust to
+    mis-specification
+\end{itemize}
+
+\textbf{Idea}: consider a predictor for $Y$ and $\tilde{p}$
+\begin{align}
+  \bar{Y}(0, X) &\approx \ex[Y(0) \mid X] \\
+  \bar{Y}(1, X) &\approx \ex[Y(1) \mid X] \\
+  f(X) = \hat{p}(t=1 \mid X) &\approx \tilde{p}(t=1 \mid X)
+\end{align}
+We can decompose the ATE as
+\begin{align}
+  \ex[Y(1) - Y(0)]
+  &= \ex[\bar{Y}(1, X) - \bar{Y}(0, X)]
+  + \ex\left[
+    \underbrace{Y(1) - \bar{Y}(1, X)}_{\hat{Y}(1)}
+    - \underbrace{Y(0) - \bar{Y}(0, X)}_{\hat{Y}(0)}
+  \right]
+\end{align}
+We can try to estimate that $\hat{Y}$ using IPW with $\hat{p}$:
+\begin{align}
+  \ex[Y(1) - Y(0)]
+  &= \ex[\bar{Y}(1, X) - \bar{Y}(0, X)]
+  + \ex\left[\left(
+      \frac{\ind\{T=1\}}{\hat{p}(t=1 \mid X)}
+      - \frac{\ind\{T=0\}}{\hat{p}(t=0 \mid X)}
+    \right) ( \underbrace{Y(T) - \bar{Y}(T, X)}_{\ll Y(T)} )
+  \right]
+\end{align}
+
+Bias of the estimator
+\begin{align}
+  &\ex[Y(1) - Y(0)]
+  - \ex[\bar{Y}(1,X) - \bar{Y}(0, X)]
+  - \ex\left[\left(
+      \frac{\ind\{T=1\}}{\hat{p}(t=1 \mid X)}
+      - \frac{\ind\{T=0\}}{\hat{p}(t=0 \mid X)}
+    \right) ( Y(T) - \bar{Y}(T, X) )
+  \right] \\
+  &= \ex\left[
+    (Y(1) - \bar{Y}(1, X)) \left( 1 - \frac{\ind\{T=1\}}{\hat{p}(t=1 \mid X)} \right)
+    - (Y(0) - \bar{Y}(0, X)) \left( 1 - \frac{\ind\{T=0\}}{\hat{p}(t=0 \mid X)} \right)
+  \right]
+\end{align}
+Focusing on just the $Y(1)$ term
+\begin{align}
+  \ex_X\left[
+    \ex\left[ (Y(1) - \bar{Y}(1, X) \mid X \right]  \left( 1 - \frac{\ind\{T=1\}}{\hat{p}(t=1 \mid X)} \right)
+  \right]
+\end{align}
+This bias term is zero (and the other $Y(0)$ term as well)
+if either $\bar{Y}$ or $\hat{p}$ is correct, giving the name
+\emph{doubly-robust estimator}.
+
+Denoting $Y^*(1, X) = \ex[Y(1) \mid X]$, we have
+by Cauchy-Schwarz
+\begin{align}
+  &\ex_X\left[
+    \ex\left[ (Y(1) - \bar{Y}(1, X) \mid X \right]  \left( 1 - \frac{\ind\{T=1\}}{\hat{p}(t=1 \mid X)} \right)
+  \right] \\
+  &= Y^*(1, X) - \bar{Y}(1, X) \\
+  &\leq
+  \underbrace{\ex_X[(Y^*(1, X) - \bar{Y}(1, X))^2]^{1/2}}_{\text{average squared error}~\bar{Y}}
+  \underbrace{\ex_X\left[
+      \left(1 - \frac{\bar{p}(t=1 \mid X)}{\hat{p}(t=1 \mid X)} \right)^2
+  \right]^{1/2}}_{\text{average squared error}~\hat{p}}
+\end{align}
+
+For the variance, we will focus only on the dominant second term for $T=1$
+\begin{align}
+  \Var\left[\left(
+      \frac{\ind\{T=1\}}{\hat{p}(t=1 \mid X)}
+      \right) ( Y(T) - \bar{Y}(T, X) )
+  \right]
+  &\leq \ex\left[
+      \frac{\ind\{T=1\}}{\hat{p}(t=1 \mid X)^2}
+      ( Y(1) - \bar{Y}(1, X) )^2
+  \right] \\
+  &= \ex_X\left[
+      \frac{\tilde{p}(t=1 \mid X)}{\hat{p}(t=1 \mid X)^2}
+    \ex[( Y(1) - \bar{Y}(1, X) )^2]
+  \right]
+\end{align}
+
+Some common sources of noise here are:
+\begin{itemize}
+  \item Intrinsic variance
+  \item Rare treatement error (real $\tilde{p}$ or predicted $\hat{p}$)
+\end{itemize}
+
+\subsection{Non-parametric regression}
+
+\subsubsection{Rates of convergence for non-parametric regression}
+
+Consider the RMSE
+\begin{align}
+  \ex[(y - \hat{f}(x))^2]^{1/2}
+\end{align}
+where $\hat{f}(x)$ is the function we are trying to estimate.
+
+For linear regression (parametric): $\hat{f}(x) = \braket{w,x}$
+and the RMSE decays with $n^{-1/2}$ (assuming asymptotic normality).
+
+In non-parametric regression: $d=1$ and $\hat{f}$ Lipschitz, we get
+$n^{-1/3}$. In general, we get $n^{-\alpha}$ with $\alpha$ depending on
+dimension and smoothness (derivatives)
+\begin{align}
+  \alpha = \frac{\beta}{2\beta + d}
+\end{align}
+
+In the regime where $\alpha > 1/4$, then we can get parametric rates even
+if we use a non-parametric estimator!

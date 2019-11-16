@@ -1,0 +1,244 @@
+\section{11/14/2019}%
+
+\begin{itemize}
+  \item Recap last time
+    \begin{itemize}
+      \item Doubly-robust estimators: predict either response $\bar{y}$
+	\emph{or} propensity $\bar{p}$
+      \item Semi-parametric estimation
+	\begin{align}
+	  \underbrace{\text{Bias}}_{n^{-2\alpha}, \alpha > 1/4}
+	  + \underbrace{\text{Variance}}_{1/\sqrt{n}}
+	\end{align}
+    \end{itemize}
+  \item Today
+    \begin{itemize}
+      \item Uncertainty estimates
+	\begin{itemize}
+	  \item Assuming model coffect
+	  \item Partial specification
+	\end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsection{Linear regression}
+
+Bias-variance decomposition
+\begin{align}
+  \ex[(\ex[Y] - \hat{Y})^2]
+  &= \underbrace{\ex[\ex[Y] - \hat{Y}]^2}_{\text{Bias}}
+  + \underbrace{\Var[\hat{Y}]}_{\text{variance}}
+\end{align}
+
+Let $(X_i, Y_i) \sim \tilde{p}$ and $\bar{X}_i \sim p^*$.
+Assume covariate shift, i.e.
+\begin{align}
+  \tilde{p}(y \mid x) &= p^*(y \mid x)
+\end{align}
+and a linear model with homoscedastic noise
+\begin{align}
+  y &= \braket{\beta^*, x} + z, \qquad z \sim N(0, \sigma^2) \\
+  \bar{y} &= \braket{\beta^*, \bar{x}} + z
+\end{align}
+
+\textbf{Question}: Obtain $\hat{\beta}$ from $(X_i, Y_i)_{i=1}^n$.
+How well should I expect to do on $p^*$?
+
+One way to measure it is just the squared error
+\begin{align}
+  \frac{1}{m} \sum_{i=1}^m (\bar{y}_i - \braket{\hat{\beta}, \bar{x}_i})^2
+\end{align}
+But this includes error introduced by $z$, so another way to measure
+it is excess risk
+\begin{align}
+  \frac{1}{m} \sum_{i=1}^m \braket{\beta^* - \hat{\beta}, \bar{x}_i}^2
+\end{align}
+But we may not have labels $\bar{y}_i$ for $p^*$, so instead we measure
+using the expectations (over both $p^*$ and $\hat\beta$) of the above.
+
+We will see that it's often useful to condition the above expectations
+on the $x_i$ and $\bar{x}_i$
+\begin{align}
+  \ex\left[\left.
+      \frac{1}{m} \sum_{i=1}^m \braket{\beta^* - \hat{\beta}, \bar{x}_i}^2
+      \right\vert
+      x_1,\ldots,x_n,\bar{x}_1,\ldots,\bar{x}_m
+    \right]
+  \end{align}
+
+
+  \subsubsection{OLS estimator}
+
+  Consider $\hat{\beta}$ the OLS estimator.
+  \begin{align}
+    \hat{\beta}
+    &= \argmin_\beta \frac{1}{n} \sum_{i=1}^n (y_i - \braket{\beta, x_i})^2 \\
+    &= \left(
+      \underbrace{
+	\frac{1}{n} \sum_{i=1}^n x_i x_i^\top
+      }_{\tilde{\Omega}}
+    \right)^{-1}
+    \left(
+      \frac{1}{n} \sum_{i=1}^n x_i y_i
+    \right) \\
+    &= \tilde{\Omega}^{-1}\left(
+      \frac{1}{n} \sum_{i=1}^n x_i (x_i^\top \beta^* + z_i)
+    \right) \\
+    &= \tilde{\Omega}^{-1} \left(\tilde{\Omega} \beta^* + \frac{1}{n} \sum_{i=1}^n x_i z_i\right) \\
+    &= \beta^* + \tilde{\Omega}^{-1} \left(
+      \frac{1}{n}  \sum_{i=1}^n x_i z_i
+    \right)
+  \end{align}
+
+  So we see immediately that this is \emph{unbiased}
+  \begin{align}
+    \hat\beta - \beta^* = \tilde{\Omega}^{-1}\left(
+      \frac{1}{n} \sum_{i=1}^n x_i z_i
+    \right) \to \ex = 0
+  \end{align}
+
+  The variance of $\tilde{\Omega}^{-1}\left( \frac{1}{n} \sum_{i=1}^n x_i z_i \right)$ is
+  \begin{align}
+    \Cov(\tilde{\Omega}^{-1}( \frac{1}{n} \sum_{i=1}^n x_i z_i ))
+  &= \ex\left[
+    \tilde{\Omega}^{-1} \left(
+      \frac{1}{n} \sum_{i=1}^n x_i z_i
+      \right) \left(
+      \frac{1}{n} \sum_{j=1}^n z_j x_j^\top
+    \right) \tilde{\Omega}^{-1}
+  \right] \\
+  &= \tilde{\Omega}^{-1} \ex\left[
+    \frac{1}{n^2} \sum_{i=1}^n z_i^2 x_i x_i^\top
+  \right] \tilde{\Omega}^{-1} \\
+  &= \frac{\sigma^2}{n} \tilde{\Omega}^{-1}
+\end{align}
+
+\todo{Replace pseudo-inverse with Fisher information matrix in logistic regression}
+\todo{See Montanari and Bartlett for results characterizing bias and variance}
+
+If the errors are Gaussian, then squared error is excess loss plus $\sigma$,
+so consider excess loss.
+\begin{align}
+  \ex \left[\left.
+      \frac{1}{m}
+      \sum_{j=1}^n \braket{\hat{\beta} - \beta^*, \bar{x}_j}^2
+      \right\vert x_{1:m}, \bar{x}_{1:m}
+    \right]
+  &= \frac{1}{m} \sum_{j=1}^m (\hat{\beta} - \beta^*) \bar{x}_j \bar{x}_j^\top (\hat{\beta} - \beta^*) \\
+  &= \ex\left[
+    (\hat{\beta} - \beta^*)^\top
+    \left(
+      \underbrace{\frac{1}{m} \sum_{j=1}^m \bar{x}_j \bar{x}_j^\top}_{\Omega^*}
+    \right)
+    (\hat{\beta} - \beta^*)
+  \right] \\
+  &= \ex\left[
+    \braket{\Omega^*, \underbrace{(\hat\beta - \beta^*) (\hat\beta - \beta^*)^\top}_{\frac{\sigma^2}{n} \tilde{\Omega}^{-1}}}
+  \right] \\
+  &= \frac{\sigma^2}{n} \braket{\Omega^*, \tilde{\Omega}^{-1}}
+\end{align}
+
+Interpretation: when $\tilde{\Omega} = \Omega^*$, we have
+\begin{align}
+  \braket{\Omega^*, \tilde{\Omega}^{-1}}
+  &= \Tr(\Omega^* \tilde{\Omega}^{-1})
+  = \Tr(I)
+  = d \\
+  \therefore \text{Excess loss}
+  &= \sigma^2 \frac{d}{n}
+\end{align}
+
+\begin{itemize}
+  \item If $\tilde{\Omega}$ not invertible, then this result is inconclusive.
+    Can show finite if $\|\beta^*\|_2 < \infty$
+    \todo{This is avoided by determinantal design!}
+  \item Size of $\Omega^*$ vs $\tilde{\Omega}$: can double $\tilde{\Omega}$ and
+    reduce error, this is because we are increasing scale of $X$
+    but keeping $\sigma$ constant
+  \item $\tilde{\Omega}$ invertible, $\Omega^*$ not invertible. This is
+    fine, because it just says that we got more dimensions
+    at training $\tilde{p}$ than at test time $p^*$
+  \item Easy to undo conditioning on $\bar{x}$ (just replace $\Omega^*$ with
+    $\ex_{p^*}[x x^\top]$), need concentration to undo $\tilde{\Omega}^{-1}$
+\end{itemize}
+
+We can undo the Gaussian assumption on $z_i$. We still have
+\begin{align}
+  \hat{\beta}
+    &= \beta^* + \tilde{\Omega}^{-1} \left(
+      \frac{1}{n}  \sum_{i=1}^n x_i z_i
+    \right)
+\end{align} 
+From which we see that we are \emph{unbiased} if $\ex[z_i \mid x_i]
+= 0$ for all $i$, and asymptotically unbiased if $\ex[X Z] = 0$ and
+$\ex[\bar{X} Z] = 0$.
+
+Considering the variance term (and no longer assuming unbiased), we find
+\begin{align}
+  \Cov(\hat{\beta})
+  &= \Cov(\hat{\beta} - \beta^*) \\
+  &= \Cov(\tilde{\Omega}^{-1} \sum_{i=1}^n x_i z_i) \\
+  &= \frac{1}{n^2} \tilde{\Omega}^{-1} \sum_{i,j=1}^n \Cov(x_i z_i, x_j z_j) \tilde{\Omega}^{-1}
+\end{align}
+Since $(x_i, z_j)$ is independent of $(x_j, z_j)$, all off-diagonal
+terms are zero
+\todo{This rules out experimental designs}
+\begin{align}
+  &= \frac{1}{n^2} \tilde{\Omega}^{-1} \sum_{i=1}^n \Cov(x_i z_j) \tilde{\Omega}^{-1} \\
+  &= \frac{1}{n} \tilde{\Omega}^{-1} \left(\underbrace{
+      \frac{1}{n}  \sum_{i=1}^n x_i \Cov(z_i) x_i^\top
+    }_{\tilde{M}}
+  \right) \tilde{\Omega}^{-1}
+\end{align}
+Befroe we had $\frac{\sigma^2}{n} \tilde{\Omega}^{-1}$, whereas
+now we have the guarantee that $\Var(z_i \mid x_i) \leq \sigma^2$
+implies $\tilde{M} \leq \sigma^2 \tilde{\Omega}$
+and therefore
+\begin{align}
+  \text{Var} &\leq \frac{\sigma^2}{n} \tilde{\Omega}^{-1}
+\end{align}
+
+If data is actually linear ($\ex[Z_i \mid X_i] = 0$), then
+\begin{align}
+  \frac{1}{n} \braket{\Omega^*, \tilde{\Omega}^{-1} \tilde{M} \tilde{\Omega}^{-1}}
+\end{align} 
+But if data is not linear (drop assumption $\ex[z_i \mid x_i] = 0$,
+then we need to be careful about $\beta^*$. Define $\tilde{b}$ by
+\begin{align}
+  \hat{\beta} &=
+  \beta^* + \tilde{\Omega}^{-1} \underbrace{\left( \frac{1}{n}  \sum_{i=1}^n x_i z_i \right)}_{\tilde{b}}
+\end{align}
+The predictive loss is no longer equal to the excess loss.
+Consider just the predictive loss
+\begin{align}
+  \ex\left[
+    \frac{1}{m}  \sum_{j=1}^m \left(
+      \bar{y}_j - \braket{\hat{\beta}, \bar{x}_j}
+    \right)^2
+  \right]
+  &= \ex\left[
+    \frac{1}{m} \sum_{j=1}^m \left(
+      \bar{z}_j + \braket{\beta^* - \hat{\beta}, \bar{x}_j}
+    \right)^2
+  \right] \\
+  &= \ex\left[ \frac{1}{m} \sum_{j=1}^m \bar{Z}_j^2 \right]
+  + 2 \ex\left[ \braket{
+      \underbrace{\frac{1}{m} \sum_{j=1}^m \bar{x}_j \bar{z}_j}_{=-b^* = \tilde{\Omega}^{-1} \tilde{b}}
+, \hat{\beta} - \beta^*}\right]
+  + \ex\left[ \frac{1}{m}  \sum_{j=1}^m \braket{\hat{\beta} - \beta^*, \bar{x}_j}^2\right]
+\end{align}
+where $b^*$ is $\tilde{b}$ except defined using $\bar{x}_i$ and $\bar{z}_i$.
+The first term is easily computable. The last
+term has a bias and error term because $\hat\beta$ is biased.
+After some algebra, the error conditional on
+$\bar{x}_{1:m}$ and $x_{1:n}$ is
+\begin{align}
+  \braket{\Omega^*, \tilde{\Omega}^{-1}\left(
+      \frac{1}{n} \tilde{M} + \tilde{b} \tilde{b}^\top
+  \right) \tilde{\Omega}^{-1}}
+  - 2 \braket{b^*, \tilde{\Omega}^{-1} \tilde{b}}
+  + \frac{1}{m} \sum_{j=1}^m \ex[\bar{z}_j^2 \mid \bar{x}_j]
+\end{align}
+If we define $\beta^*$ to be the optimizer on $\tilde{p}$
+the first two terms go away but we need to evaluate the third term.
+Alternatively, if we let $\beta$ be the optimizer on $p^*$, then ??.
